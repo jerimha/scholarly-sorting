@@ -21,7 +21,7 @@ const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
         <h1 className={cn("font-semibold text-sidebar-foreground", 
           expanded ? "text-xl" : "hidden"
         )}>
-          ScholarlySort
+          TheSpect
         </h1>
         <button 
           onClick={() => setExpanded(!expanded)}
