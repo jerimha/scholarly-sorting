@@ -1,24 +1,31 @@
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Tag } from "@/types";
-import { sampleTags } from "@/lib/data";
-import { useState } from "react";
+import { getTags } from "@/lib/storage";
+import { useState, useEffect } from "react";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
+import { saveFile } from "@/lib/storage";
 
 interface FileUploaderProps {
   currentPath: string[];
+  onFileUploaded?: () => void;
 }
 
-const FileUploader = ({ currentPath }: FileUploaderProps) => {
+const FileUploader = ({ currentPath, onFileUploaded }: FileUploaderProps) => {
   const [fileName, setFileName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [notes, setNotes] = useState("");
+  
+  useEffect(() => {
+    setAvailableTags(getTags());
+  }, []);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -36,17 +43,78 @@ const FileUploader = ({ currentPath }: FileUploaderProps) => {
     );
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const determineFileType = (filename: string) => {
+    const extension = filename.split('.').pop()?.toLowerCase() || '';
+    
+    if (['pdf'].includes(extension)) return 'pdf';
+    if (['doc', 'docx'].includes(extension)) return 'docx';
+    if (['txt', 'md'].includes(extension)) return 'txt';
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension)) return 'image';
+    return 'other';
+  };
+  
+  const readFileContent = async (file: File): Promise<string | null> => {
+    // Only read content for text files
+    if (!file.type.startsWith('text/')) {
+      return null;
+    }
+    
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolve(e.target?.result as string || null);
+      };
+      reader.readAsText(file);
+    });
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // In a real app, you would upload the file to a server
-    toast.success(`File "${fileName}" uploaded successfully to /${currentPath.join('/')}`);
-    setOpen(false);
+    if (!selectedFile || !fileName) {
+      toast.error("Please select a file and provide a name");
+      return;
+    }
     
-    // Reset form
-    setFileName("");
-    setSelectedFile(null);
-    setSelectedTags([]);
+    try {
+      // Read file content if it's a text file
+      const content = await readFileContent(selectedFile);
+      
+      // Get selected tags objects
+      const tags = availableTags.filter(tag => selectedTags.includes(tag.id));
+      
+      // Save the file
+      const fileData = {
+        name: fileName,
+        type: determineFileType(selectedFile.name),
+        size: selectedFile.size,
+        createdAt: new Date(),
+        modifiedAt: new Date(),
+        tags: tags,
+        path: [...currentPath],
+        notes: notes,
+        content: content || undefined
+      };
+      
+      saveFile(fileData);
+      
+      toast.success(`File "${fileName}" uploaded successfully to /${currentPath.join('/')}`);
+      setOpen(false);
+      
+      // Reset form
+      setFileName("");
+      setSelectedFile(null);
+      setSelectedTags([]);
+      setNotes("");
+      
+      // Notify parent component
+      if (onFileUploaded) {
+        onFileUploaded();
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Failed to upload file. Please try again.");
+    }
   };
   
   return (
@@ -60,6 +128,9 @@ const FileUploader = ({ currentPath }: FileUploaderProps) => {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Upload File</DialogTitle>
+          <DialogDescription>
+            Upload a file to your thesis collection
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
@@ -88,9 +159,19 @@ const FileUploader = ({ currentPath }: FileUploaderProps) => {
           </div>
           
           <div className="grid w-full items-center gap-1.5">
+            <Label htmlFor="notes">Notes</Label>
+            <Input 
+              id="notes" 
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add notes about this file"
+            />
+          </div>
+          
+          <div className="grid w-full items-center gap-1.5">
             <Label>Tags</Label>
             <div className="flex flex-wrap gap-2">
-              {sampleTags.map(tag => (
+              {availableTags.map(tag => (
                 <button
                   key={tag.id}
                   type="button"

@@ -6,15 +6,24 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 interface FilePreviewProps {
   file: FileData | null;
   onClose: () => void;
+  onUpdate?: (fileId: string, updates: Partial<FileData>) => void;
 }
 
-const FilePreview = ({ file, onClose }: FilePreviewProps) => {
+const FilePreview = ({ file, onClose, onUpdate }: FilePreviewProps) => {
   const [notes, setNotes] = useState(file?.notes || "");
+  
+  // Update notes when file changes
+  useEffect(() => {
+    if (file) {
+      setNotes(file.notes || "");
+    }
+  }, [file]);
   
   if (!file) return null;
   
@@ -23,6 +32,36 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       dateStyle: 'medium',
       timeStyle: 'short'
     }).format(new Date(date));
+  };
+  
+  const handleSaveNotes = () => {
+    if (onUpdate && file) {
+      onUpdate(file.id, { notes });
+      toast.success("Notes saved successfully");
+    }
+  };
+  
+  const handleDownload = () => {
+    // Create a simple download process based on file type
+    // This is a simple implementation - in a real app, you'd fetch the file from storage
+    
+    const fileData = file.content || `This is a placeholder for the ${file.name} content`;
+    const blob = new Blob([fileData], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+    
+    toast.success(`Downloaded ${file.name}`);
   };
   
   return (
@@ -90,7 +129,12 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
         )}
         
         <div>
-          <h4 className="text-sm font-medium mb-2">Notes</h4>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-medium">Notes</h4>
+            <Button variant="outline" size="sm" onClick={handleSaveNotes}>
+              Save Notes
+            </Button>
+          </div>
           <Textarea 
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -101,7 +145,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       </CardContent>
       
       <CardFooter className="border-t p-4">
-        <Button className="w-full">Download File</Button>
+        <Button className="w-full" onClick={handleDownload}>Download File</Button>
       </CardFooter>
     </Card>
   );
