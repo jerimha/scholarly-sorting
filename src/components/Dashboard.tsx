@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { File, Folder, Tag } from "@/types";
 import { formatFileSize } from "@/lib/data";
 import { filterFilesByTag, getRootFiles, getRootFolders, searchFiles, initializeStorage, getFiles, updateFile } from "@/lib/storage";

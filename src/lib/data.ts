@@ -1,4 +1,3 @@
-
 import { File, FileType, Folder, Tag } from "@/types";
 
 // Sample tags

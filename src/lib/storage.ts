@@ -1,6 +1,5 @@
-
 import { File, FileType, Folder, Tag } from "@/types";
-import { sampleTags } from "./data";
+import { sampleTags, sampleFiles, sampleFolders } from "./data";
 
 // LocalStorage keys
 const FILES_STORAGE_KEY = "thespect_files";
@@ -9,9 +8,6 @@ const TAGS_STORAGE_KEY = "thespect_tags";
 
 // Initialize storage with sample data if empty
 export const initializeStorage = () => {
-  // Import sample data
-  const { sampleFiles, sampleFolders } = require("./data");
-  
   if (!localStorage.getItem(FILES_STORAGE_KEY)) {
     localStorage.setItem(FILES_STORAGE_KEY, JSON.stringify(sampleFiles));
   }
