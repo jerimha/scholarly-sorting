@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -42,7 +42,7 @@ const Login = () => {
         description: "You have been logged in successfully",
       });
       
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Error",
@@ -58,7 +58,18 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">TheSpect</CardTitle>
+          <div className="flex items-center justify-between">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate("/")}
+              className="flex items-center gap-1 -ml-2"
+            >
+              <ArrowLeft size={16} />
+              Back
+            </Button>
+            <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
+          </div>
           <CardDescription className="text-center">
             Enter your credentials to access your account
           </CardDescription>

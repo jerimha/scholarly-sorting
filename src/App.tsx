@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import PublicSearch from "./pages/PublicSearch";
 
 const queryClient = new QueryClient();
 
@@ -27,8 +28,9 @@ const AppRoutes = () => {
   
   return (
     <Routes>
-      <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
-      <Route path="/" element={
+      <Route path="/" element={<PublicSearch />} />
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
+      <Route path="/dashboard" element={
         <ProtectedRoute>
           <Index />
         </ProtectedRoute>
