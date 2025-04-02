@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tag } from "@/types";
+import { Tag, FileType } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { saveFile } from "@/lib/storage";
 import { getTags } from "@/lib/storage";
@@ -48,7 +48,7 @@ const FileUploader = ({ onFileUploaded }: { onFileUploaded: () => void }) => {
 
     try {
       // Determine file type
-      let fileType: string;
+      let fileType: FileType;
       if (file.name.endsWith('.pdf')) {
         fileType = 'pdf';
       } else if (file.name.endsWith('.docx')) {
