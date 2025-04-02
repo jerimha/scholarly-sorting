@@ -67,8 +67,12 @@ const FileUploader = ({ onFileUploaded }: { onFileUploaded: () => void }) => {
         content = await file.text();
       }
 
+      // Generate a unique id for the file
+      const fileId = `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
       // Save file to storage
       saveFile({
+        id: fileId,
         name: file.name,
         type: fileType,
         size: file.size,
@@ -77,7 +81,8 @@ const FileUploader = ({ onFileUploaded }: { onFileUploaded: () => void }) => {
         tags: selectedTags,
         path: [], // Root folder by default
         notes: notes,
-        content
+        content,
+        starred: false
       });
 
       toast({
