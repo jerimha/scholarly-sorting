@@ -9,12 +9,16 @@ import FolderItem from "./FolderItem";
 import FilePreview from "./FilePreview";
 import SearchBar from "./SearchBar";
 import FileUploader from "./FileUploader";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { ChevronRight, Home, PlusCircle } from "lucide-react";
 import { getTags } from "@/lib/storage";
 
 const Dashboard = () => {
+  const { logout, user } = useAuth();
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPath, setCurrentPath] = useState<string[]>([]);
@@ -172,9 +176,23 @@ const Dashboard = () => {
               })()}
             </h1>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              {user && (
+                <div className="flex items-center gap-2 mr-2">
+                  <span className="text-sm font-medium">{user.name}</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={logout} 
+                    className="flex items-center gap-1"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </Button>
+                </div>
+              )}
               <SearchBar value={searchQuery} onChange={handleSearchChange} />
-              {activeTab === "all" && <FileUploader currentPath={currentPath} onFileUploaded={handleFileUploaded} />}
+              {activeTab === "all" && <FileUploader onFileUploaded={handleFileUploaded} />}
             </div>
           </div>
           
@@ -249,7 +267,7 @@ const Dashboard = () => {
                       ? "Try a different search term or browse through your folders." 
                       : "Upload files or create folders to organize your thesis."}
                   </p>
-                  {activeTab === "all" && <FileUploader currentPath={currentPath} onFileUploaded={handleFileUploaded} />}
+                  {activeTab === "all" && <FileUploader onFileUploaded={handleFileUploaded} />}
                 </div>
               )
             )}
