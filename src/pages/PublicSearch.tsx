@@ -1,20 +1,32 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { Search, FileText, Shield } from "lucide-react";
 import { formatFileSize, searchFiles } from "@/lib/data";
 import { File } from "@/types";
+import { getAllFilesFromStorage } from "@/lib/storage";
 
 const PublicSearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<File[]>([]);
+  const [allFiles, setAllFiles] = useState<File[]>([]);
   const navigate = useNavigate();
+
+  // Load all files from localStorage on component mount
+  useEffect(() => {
+    const files = getAllFilesFromStorage();
+    setAllFiles(files);
+  }, []);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      const foundFiles = searchFiles(searchQuery);
+      // Search through the files that were loaded from localStorage
+      const foundFiles = allFiles.filter(file => 
+        file.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        file.tags.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
       setResults(foundFiles);
     } else {
       setResults([]);
