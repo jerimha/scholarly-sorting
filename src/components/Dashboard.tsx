@@ -1,51 +1,24 @@
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { File, Folder, Tag } from "@/types";
-import { formatFileSize } from "@/lib/data";
-import { filterFilesByTag, getRootFiles, getRootFolders, searchFiles, initializeStorage, getFiles, updateFile } from "@/lib/storage";
+import { filterFilesByTag, formatFileSize, getAllFiles, getRootFiles, getRootFolders, sampleTags, searchFiles } from "@/lib/data";
 import Sidebar from "./Sidebar";
 import FileItem from "./FileItem";
 import FolderItem from "./FolderItem";
 import FilePreview from "./FilePreview";
 import SearchBar from "./SearchBar";
 import FileUploader from "./FileUploader";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { ChevronRight, Home, PlusCircle } from "lucide-react";
-import { getTags } from "@/lib/storage";
 
 const Dashboard = () => {
-  const { logout, user } = useAuth();
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPath, setCurrentPath] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [displayedFiles, setDisplayedFiles] = useState<File[]>([]);
   const [displayedFolders, setDisplayedFolders] = useState<Folder[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
-  // Initialize storage with sample data on first load
-  useEffect(() => {
-    initializeStorage();
-    setTags(getTags());
-  }, []);
-  
-  // Handle file updates (like notes)
-  const handleFileUpdate = (fileId: string, updates: Partial<File>) => {
-    const updated = updateFile(fileId, updates);
-    if (updated) {
-      // If the currently selected file was updated, refresh it
-      if (selectedFile && selectedFile.id === fileId) {
-        setSelectedFile(updated);
-      }
-      // Trigger a refresh of displayed files
-      setRefreshTrigger(prev => prev + 1);
-    }
-  };
   
   // Update displayed files and folders when tab or path changes
   useEffect(() => {
@@ -65,14 +38,14 @@ const Dashboard = () => {
     }
     
     if (activeTab === "starred") {
-      setDisplayedFiles(getFiles().filter(file => file.starred));
+      setDisplayedFiles(getAllFiles().filter(file => file.starred));
       setDisplayedFolders([]);
       return;
     }
     
     if (activeTab === "recent") {
       // Sort by modified date, most recent first
-      const recentFiles = [...getFiles()].sort(
+      const recentFiles = [...getAllFiles()].sort(
         (a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()
       ).slice(0, 10); // Get 10 most recent
       
@@ -111,7 +84,7 @@ const Dashboard = () => {
     
     setDisplayedFolders(currentFolders);
     setDisplayedFiles(currentFiles);
-  }, [activeTab, currentPath, refreshTrigger]);
+  }, [activeTab, currentPath]);
   
   // Handle search
   useEffect(() => {
@@ -152,11 +125,6 @@ const Dashboard = () => {
     setCurrentPath([]);
   };
   
-  const handleFileUploaded = () => {
-    // Refresh the file list after a new file has been uploaded
-    setRefreshTrigger(prev => prev + 1);
-  };
-  
   return (
     <div className="flex h-screen">
       <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
@@ -171,28 +139,14 @@ const Dashboard = () => {
               {activeTab === "search" && "Search Results"}
               {activeTab.startsWith("tag-") && (() => {
                 const tagId = activeTab.replace("tag-", "");
-                const tag = tags.find(t => t.id === tagId);
+                const tag = sampleTags.find(t => t.id === tagId);
                 return tag ? `Tag: ${tag.name}` : "Tagged Files";
               })()}
             </h1>
             
-            <div className="flex items-center gap-3">
-              {user && (
-                <div className="flex items-center gap-2 mr-2">
-                  <span className="text-sm font-medium">{user.name}</span>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={logout} 
-                    className="flex items-center gap-1"
-                  >
-                    <LogOut size={16} />
-                    Logout
-                  </Button>
-                </div>
-              )}
+            <div className="flex items-center gap-2">
               <SearchBar value={searchQuery} onChange={handleSearchChange} />
-              {activeTab === "all" && <FileUploader onFileUploaded={handleFileUploaded} />}
+              {activeTab === "all" && <FileUploader currentPath={currentPath} />}
             </div>
           </div>
           
@@ -207,16 +161,16 @@ const Dashboard = () => {
                 </BreadcrumbItem>
                 
                 {currentPath.map((folder, index) => (
-                  <React.Fragment key={`breadcrumb-${index}`}>
+                  <>
                     <BreadcrumbSeparator>
                       <ChevronRight size={16} />
                     </BreadcrumbSeparator>
-                    <BreadcrumbItem>
+                    <BreadcrumbItem key={index}>
                       <BreadcrumbLink onClick={() => handlePathClick(index)}>
                         {folder}
                       </BreadcrumbLink>
                     </BreadcrumbItem>
-                  </React.Fragment>
+                  </>
                 ))}
               </BreadcrumbList>
             </Breadcrumb>
@@ -267,7 +221,7 @@ const Dashboard = () => {
                       ? "Try a different search term or browse through your folders." 
                       : "Upload files or create folders to organize your thesis."}
                   </p>
-                  {activeTab === "all" && <FileUploader onFileUploaded={handleFileUploaded} />}
+                  {activeTab === "all" && <FileUploader currentPath={currentPath} />}
                 </div>
               )
             )}
@@ -278,7 +232,6 @@ const Dashboard = () => {
               <FilePreview 
                 file={selectedFile}
                 onClose={() => setSelectedFile(null)}
-                onUpdate={handleFileUpdate}
               />
             </div>
           )}
