@@ -86,7 +86,14 @@ export const deleteFile = (fileId: string): boolean => {
 export const getAllFilesFromStorage = (): File[] => {
   try {
     const filesJson = localStorage.getItem("files");
-    return filesJson ? JSON.parse(filesJson) : [];
+    const files = filesJson ? JSON.parse(filesJson) : [];
+    
+    // Convert date strings back to Date objects
+    return files.map((file: any) => ({
+      ...file,
+      createdAt: new Date(file.createdAt),
+      modifiedAt: new Date(file.modifiedAt)
+    }));
   } catch (error) {
     console.error("Error getting files:", error);
     return [];

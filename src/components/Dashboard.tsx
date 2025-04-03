@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { File, Folder, Tag } from "@/types";
 import { filterFilesByTag, formatFileSize, getAllFiles, getRootFiles, getRootFolders, sampleTags, searchFiles } from "@/lib/data";
@@ -20,13 +19,10 @@ const Dashboard = () => {
   const [displayedFiles, setDisplayedFiles] = useState<File[]>([]);
   const [displayedFolders, setDisplayedFolders] = useState<Folder[]>([]);
   
-  // Update displayed files and folders when tab or path changes
   useEffect(() => {
-    // Reset search when changing tabs
     setSearchQuery("");
     
     if (activeTab === "search") {
-      // Don't do anything when switching to search tab - wait for search input
       return;
     }
     
@@ -44,26 +40,22 @@ const Dashboard = () => {
     }
     
     if (activeTab === "recent") {
-      // Sort by modified date, most recent first
       const recentFiles = [...getAllFiles()].sort(
         (a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()
-      ).slice(0, 10); // Get 10 most recent
+      ).slice(0, 10);
       
       setDisplayedFiles(recentFiles);
       setDisplayedFolders([]);
       return;
     }
     
-    // Default view - show files and folders at current path
     const allFolders = getRootFolders();
     let currentFolders: Folder[] = allFolders;
     let currentFiles: File[] = getRootFiles();
     
-    // Navigate to the current path
     if (currentPath.length > 0) {
       let parent: Folder | undefined;
       
-      // Find the current folder based on the path
       for (let i = 0; i < currentPath.length; i++) {
         const folderName = currentPath[i];
         
@@ -86,13 +78,17 @@ const Dashboard = () => {
     setDisplayedFiles(currentFiles);
   }, [activeTab, currentPath]);
   
-  // Handle search
   useEffect(() => {
     if (activeTab === "search" && searchQuery) {
       setDisplayedFiles(searchFiles(searchQuery));
       setDisplayedFolders([]);
     }
   }, [searchQuery, activeTab]);
+  
+  useEffect(() => {
+    const initialFiles = getRootFiles();
+    setDisplayedFiles(initialFiles);
+  }, []);
   
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);

@@ -12,9 +12,10 @@ import { saveFile } from "@/lib/storage";
 
 interface FileUploaderProps {
   currentPath: string[];
+  onUploadComplete?: () => void;
 }
 
-const FileUploader = ({ currentPath }: FileUploaderProps) => {
+const FileUploader = ({ currentPath, onUploadComplete }: FileUploaderProps) => {
   const [fileName, setFileName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -74,6 +75,14 @@ const FileUploader = ({ currentPath }: FileUploaderProps) => {
         setFileName("");
         setSelectedFile(null);
         setSelectedTags([]);
+        
+        // Notify parent component that upload is complete
+        if (onUploadComplete) {
+          onUploadComplete();
+        }
+        
+        // Force a window reload to see the new file immediately
+        window.location.reload();
       } else {
         toast.error("Failed to upload file");
       }
