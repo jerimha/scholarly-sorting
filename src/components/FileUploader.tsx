@@ -2,13 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Tag } from "@/types";
+import { FileType, Tag } from "@/types";
 import { sampleTags } from "@/lib/data";
 import { useState } from "react";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
+import { saveFile } from "@/lib/storage";
 
 interface FileUploaderProps {
   currentPath: string[];
@@ -36,17 +36,74 @@ const FileUploader = ({ currentPath }: FileUploaderProps) => {
     );
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // In a real app, you would upload the file to a server
-    toast.success(`File "${fileName}" uploaded successfully to /${currentPath.join('/')}`);
-    setOpen(false);
+    if (!selectedFile) return;
     
-    // Reset form
-    setFileName("");
-    setSelectedFile(null);
-    setSelectedTags([]);
+    try {
+      // Read file content if it's a text file
+      let content = "";
+      const fileType = getFileType(selectedFile.type);
+      
+      if (['txt', 'pdf', 'docx'].includes(fileType)) {
+        content = await readFileContent(selectedFile);
+      }
+      
+      // Create file object
+      const fileObject = {
+        id: crypto.randomUUID(),
+        name: fileName || selectedFile.name,
+        type: fileType as FileType,
+        size: selectedFile.size,
+        createdAt: new Date(),
+        modifiedAt: new Date(),
+        tags: sampleTags.filter(tag => selectedTags.includes(tag.id)),
+        path: [...currentPath],
+        content: content,
+      };
+      
+      // Save to storage
+      const success = saveFile(fileObject);
+      
+      if (success) {
+        toast.success(`File "${fileName}" uploaded successfully to /${currentPath.join('/')}`);
+        setOpen(false);
+        
+        // Reset form
+        setFileName("");
+        setSelectedFile(null);
+        setSelectedTags([]);
+      } else {
+        toast.error("Failed to upload file");
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Failed to upload file");
+    }
+  };
+  
+  // Helper function to read file content
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolve(e.target?.result as string || "");
+      };
+      reader.onerror = (e) => {
+        reject(e);
+      };
+      reader.readAsText(file);
+    });
+  };
+  
+  // Helper function to determine file type
+  const getFileType = (mimeType: string): FileType => {
+    if (mimeType.includes('pdf')) return 'pdf';
+    if (mimeType.includes('word') || mimeType.includes('docx')) return 'docx';
+    if (mimeType.includes('text')) return 'txt';
+    if (mimeType.includes('image')) return 'image';
+    return 'other';
   };
   
   return (

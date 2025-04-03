@@ -1,8 +1,10 @@
 
 import { sampleTags } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { File, Filter, Folder, Search, Star, Tag } from "lucide-react";
+import { AlignJustify, ChevronDown, Clock, FileText, FolderOpen, Home, Search, Settings, Star, Tag, X } from "lucide-react";
 import { useState } from "react";
+import { Button } from "./ui/button";
+import LogoutButton from "./LogoutButton";
 
 interface SidebarProps {
   activeTab: string;
@@ -10,92 +12,149 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
-  const [expanded, setExpanded] = useState(true);
-
+  const [collapsed, setCollapsed] = useState(false);
+  const [tagsExpanded, setTagsExpanded] = useState(true);
+  
+  const toggleSidebar = () => {
+    setCollapsed(!collapsed);
+  };
+  
   return (
     <div className={cn(
-      "h-screen bg-sidebar border-r border-sidebar-border flex flex-col",
-      expanded ? "w-60" : "w-16"
+      "bg-muted border-r transition-all duration-300 h-full flex flex-col",
+      collapsed ? "w-16" : "w-64"
     )}>
-      <div className="p-4 flex items-center justify-between border-b border-sidebar-border">
-        <h1 className={cn("font-semibold text-sidebar-foreground", 
-          expanded ? "text-xl" : "hidden"
-        )}>
-          TheSpect
-        </h1>
-        <button 
-          onClick={() => setExpanded(!expanded)}
-          className="text-sidebar-foreground hover:bg-sidebar-accent rounded p-1.5"
-        >
-          {expanded ? "←" : "→"}
-        </button>
-      </div>
-      
-      <nav className="flex-1 overflow-y-auto p-2">
-        <ul className="space-y-1">
-          {[
-            { id: "all", name: "All Files", icon: <File size={18} /> },
-            { id: "recent", name: "Recent", icon: <Filter size={18} /> },
-            { id: "starred", name: "Starred", icon: <Star size={18} /> }
-          ].map((item) => (
-            <li key={item.id}>
-              <button
-                onClick={() => onTabChange(item.id)}
-                className={cn(
-                  "w-full flex items-center px-3 py-2 rounded text-sm",
-                  activeTab === item.id
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                )}
-              >
-                <span className="mr-2">{item.icon}</span>
-                {expanded && <span>{item.name}</span>}
-              </button>
-            </li>
-          ))}
-        </ul>
-        
-        {expanded && (
-          <div className="mt-6">
-            <h3 className="px-3 text-xs font-medium text-sidebar-foreground opacity-60 uppercase tracking-wider">
-              Tags
-            </h3>
-            <ul className="mt-2 space-y-1">
-              {sampleTags.map((tag) => (
-                <li key={tag.id}>
-                  <button
-                    onClick={() => onTabChange(`tag-${tag.id}`)}
-                    className={cn(
-                      "w-full flex items-center px-3 py-2 rounded text-sm",
-                      activeTab === `tag-${tag.id}`
-                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    )}
-                  >
-                    <Tag size={16} className="mr-2" />
-                    <span>{tag.name}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+      <div className="flex items-center justify-between px-4 h-16 border-b">
+        {!collapsed && (
+          <h2 className="font-semibold text-lg">TheSpect</h2>
         )}
-      </nav>
-      
-      <div className="p-4 border-t border-sidebar-border">
-        <button
-          onClick={() => onTabChange("search")}
-          className={cn(
-            "w-full flex items-center px-3 py-2 rounded text-sm",
-            activeTab === "search"
-              ? "bg-sidebar-primary text-sidebar-primary-foreground"
-              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          )}
-        >
-          <Search size={18} className="mr-2" />
-          {expanded && <span>Search</span>}
-        </button>
+        <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+          {collapsed ? <AlignJustify size={20} /> : <X size={20} />}
+        </Button>
       </div>
+      
+      <div className="flex-1 overflow-auto py-4">
+        <nav className="space-y-1 px-2">
+          <SidebarItem 
+            icon={<Home size={20} />}
+            label="All Files"
+            active={activeTab === "all"}
+            collapsed={collapsed}
+            onClick={() => onTabChange("all")}
+          />
+          
+          <SidebarItem 
+            icon={<Clock size={20} />}
+            label="Recent"
+            active={activeTab === "recent"}
+            collapsed={collapsed}
+            onClick={() => onTabChange("recent")}
+          />
+          
+          <SidebarItem 
+            icon={<Star size={20} />}
+            label="Starred"
+            active={activeTab === "starred"}
+            collapsed={collapsed}
+            onClick={() => onTabChange("starred")}
+          />
+          
+          <SidebarItem 
+            icon={<Search size={20} />}
+            label="Search"
+            active={activeTab === "search"}
+            collapsed={collapsed}
+            onClick={() => onTabChange("search")}
+          />
+          
+          <div className="py-2">
+            <div
+              className={cn(
+                "flex items-center py-2 px-3 rounded-md hover:bg-accent cursor-pointer",
+                collapsed ? "justify-center" : "justify-between"
+              )}
+              onClick={() => !collapsed && setTagsExpanded(!tagsExpanded)}
+            >
+              <div className="flex items-center">
+                <Tag size={20} className="mr-2" />
+                {!collapsed && <span>Tags</span>}
+              </div>
+              {!collapsed && (
+                <ChevronDown size={16} className={`transition-transform ${tagsExpanded ? "rotate-180" : ""}`} />
+              )}
+            </div>
+            
+            {!collapsed && tagsExpanded && (
+              <div className="ml-8 mt-1 space-y-1">
+                {sampleTags.map(tag => (
+                  <div
+                    key={tag.id}
+                    className={cn(
+                      "flex items-center py-1.5 px-3 rounded-md cursor-pointer text-sm",
+                      activeTab === `tag-${tag.id}` ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
+                    )}
+                    onClick={() => onTabChange(`tag-${tag.id}`)}
+                  >
+                    <div className={cn(
+                      "w-2 h-2 rounded-full mr-2",
+                      tag.color === "blue" ? "bg-blue-500" :
+                      tag.color === "green" ? "bg-green-500" :
+                      tag.color === "purple" ? "bg-purple-500" :
+                      tag.color === "orange" ? "bg-orange-500" :
+                      tag.color === "yellow" ? "bg-yellow-500" :
+                      tag.color === "red" ? "bg-red-500" : ""
+                    )} />
+                    <span>{tag.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </nav>
+      </div>
+      
+      <div className="p-4 border-t">
+        <div className="flex items-center justify-between">
+          {!collapsed && (
+            <Button variant="ghost" size="sm" className="w-full flex justify-start" onClick={() => onTabChange("settings")}>
+              <Settings size={18} className="mr-2" />
+              Settings
+            </Button>
+          )}
+          
+          {collapsed ? (
+            <Button variant="ghost" size="icon" onClick={() => onTabChange("settings")}>
+              <Settings size={20} />
+            </Button>
+          ) : (
+            <LogoutButton />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface SidebarItemProps {
+  icon: React.ReactNode;
+  label: string;
+  active: boolean;
+  collapsed: boolean;
+  onClick: () => void;
+}
+
+const SidebarItem = ({ icon, label, active, collapsed, onClick }: SidebarItemProps) => {
+  return (
+    <div
+      className={cn(
+        "flex items-center py-2 px-3 rounded-md cursor-pointer",
+        active ? "bg-accent text-accent-foreground" : "hover:bg-accent/50",
+        collapsed && "justify-center"
+      )}
+      onClick={onClick}
+    >
+      <span className={collapsed ? "" : "mr-2"}>{icon}</span>
+      {!collapsed && <span>{label}</span>}
     </div>
   );
 };
