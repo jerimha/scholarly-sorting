@@ -45,9 +45,9 @@ const FileUploader = ({ currentPath, onUploadComplete }: FileUploaderProps) => {
     try {
       // Read file content if it's a text file
       let content = "";
-      const fileType = getFileType(selectedFile.type);
+      const fileType = getFileType(selectedFile.type, selectedFile.name);
       
-      if (['txt', 'pdf', 'docx'].includes(fileType)) {
+      if (['txt', 'pdf', 'docx', 'pptx', 'xlsx'].includes(fileType)) {
         content = await readFileContent(selectedFile);
       }
       
@@ -107,11 +107,25 @@ const FileUploader = ({ currentPath, onUploadComplete }: FileUploaderProps) => {
   };
   
   // Helper function to determine file type
-  const getFileType = (mimeType: string): FileType => {
+  const getFileType = (mimeType: string, fileName: string): FileType => {
+    // First try to detect by mime type
     if (mimeType.includes('pdf')) return 'pdf';
     if (mimeType.includes('word') || mimeType.includes('docx')) return 'docx';
+    if (mimeType.includes('powerpoint') || mimeType.includes('pptx')) return 'pptx';
+    if (mimeType.includes('excel') || mimeType.includes('xlsx')) return 'xlsx';
     if (mimeType.includes('text')) return 'txt';
     if (mimeType.includes('image')) return 'image';
+    
+    // If mime type doesn't work, try to detect by file extension
+    const extension = fileName.split('.').pop()?.toLowerCase() || '';
+    
+    if (extension === 'pdf') return 'pdf';
+    if (extension === 'docx' || extension === 'doc') return 'docx';
+    if (extension === 'pptx' || extension === 'ppt') return 'pptx';
+    if (extension === 'xlsx' || extension === 'xls') return 'xlsx';
+    if (extension === 'txt') return 'txt';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension)) return 'image';
+    
     return 'other';
   };
   
