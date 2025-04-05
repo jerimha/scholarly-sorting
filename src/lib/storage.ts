@@ -1,4 +1,3 @@
-
 import { File, Folder, FileType } from "@/types";
 
 // Utility functions for file handling
@@ -240,13 +239,26 @@ export const addSampleFiles = (): void => {
       modifiedAt: new Date("2024-01-15"),
       path: [],
       tags: [
-        { id: "tag1", name: "Research", color: "blue" },
-        { id: "tag3", name: "Methodology", color: "purple" }
+        { id: "tag1", name: "Research", color: "blue" }
       ],
       content: "This is a sample research proposal document."
     },
     {
       id: "sample-2",
+      name: "Research Methods.pdf",
+      type: "pdf" as FileType,
+      size: 1456000,
+      createdAt: new Date("2023-10-05"),
+      modifiedAt: new Date("2024-02-18"),
+      path: ["Research Papers"],
+      tags: [
+        { id: "tag1", name: "Research", color: "blue" }
+      ],
+      content: "Comprehensive research methodology overview."
+    },
+    
+    {
+      id: "sample-3",
       name: "Literature Review.pdf",
       type: "pdf" as FileType,
       size: 1024000,
@@ -259,7 +271,48 @@ export const addSampleFiles = (): void => {
       content: "Sample literature review content."
     },
     {
-      id: "sample-3",
+      id: "sample-4",
+      name: "Key Literary Sources.docx",
+      type: "docx" as FileType,
+      size: 358000,
+      createdAt: new Date("2023-09-12"),
+      modifiedAt: new Date("2024-01-30"),
+      path: ["Research Papers", "Literature Review"],
+      tags: [
+        { id: "tag2", name: "Literature", color: "green" }
+      ],
+      content: "Compilation of important literary sources and references."
+    },
+    
+    {
+      id: "sample-5",
+      name: "Research Methodology.txt",
+      type: "txt" as FileType,
+      size: 165000,
+      createdAt: new Date("2023-12-22"),
+      modifiedAt: new Date("2024-02-05"),
+      path: [],
+      tags: [
+        { id: "tag3", name: "Methodology", color: "purple" }
+      ],
+      content: "Detailed explanation of research methodology."
+    },
+    {
+      id: "sample-6",
+      name: "Survey Questions.docx",
+      type: "docx" as FileType,
+      size: 198000,
+      createdAt: new Date("2024-01-08"),
+      modifiedAt: new Date("2024-02-28"),
+      path: ["Data Collection"],
+      tags: [
+        { id: "tag3", name: "Methodology", color: "purple" }
+      ],
+      content: "List of survey questions for the research study."
+    },
+    
+    {
+      id: "sample-7",
       name: "Data Analysis.txt",
       type: "txt" as FileType,
       size: 128000,
@@ -267,13 +320,26 @@ export const addSampleFiles = (): void => {
       modifiedAt: new Date("2024-03-10"),
       path: ["Data Collection"],
       tags: [
-        { id: "tag4", name: "Results", color: "orange" },
-        { id: "tag6", name: "Important", color: "red" }
+        { id: "tag4", name: "Results", color: "orange" }
       ],
       content: "Sample data analysis notes and findings."
     },
     {
-      id: "sample-4",
+      id: "sample-8",
+      name: "Statistical Output.pdf",
+      type: "pdf" as FileType,
+      size: 762000,
+      createdAt: new Date("2024-02-15"),
+      modifiedAt: new Date("2024-03-05"),
+      path: ["Data Collection"],
+      tags: [
+        { id: "tag4", name: "Results", color: "orange" }
+      ],
+      content: "Statistical analysis results from the research study."
+    },
+    
+    {
+      id: "sample-9",
       name: "Project Timeline.pdf",
       type: "pdf" as FileType,
       size: 512000,
@@ -286,7 +352,34 @@ export const addSampleFiles = (): void => {
       content: "Project timeline and milestone tracking document."
     },
     {
-      id: "sample-5",
+      id: "sample-10",
+      name: "Research Implications.docx",
+      type: "docx" as FileType,
+      size: 489000,
+      createdAt: new Date("2023-11-18"),
+      modifiedAt: new Date("2024-03-01"),
+      path: ["Drafts"],
+      tags: [
+        { id: "tag5", name: "Discussion", color: "yellow" }
+      ],
+      content: "Discussion of research implications and significance."
+    },
+    
+    {
+      id: "sample-11",
+      name: "Critical Findings.pdf",
+      type: "pdf" as FileType,
+      size: 675000,
+      createdAt: new Date("2024-01-05"),
+      modifiedAt: new Date("2024-03-12"),
+      path: [],
+      tags: [
+        { id: "tag6", name: "Important", color: "red" }
+      ],
+      content: "Essential research findings and key takeaways."
+    },
+    {
+      id: "sample-12",
       name: "Research Images.image",
       type: "image" as FileType,
       size: 2048000,
@@ -294,9 +387,39 @@ export const addSampleFiles = (): void => {
       modifiedAt: new Date("2024-03-01"),
       path: ["Research Papers", "Literature Review"],
       tags: [
-        { id: "tag1", name: "Research", color: "blue" },
-        { id: "tag4", name: "Results", color: "orange" }
+        { id: "tag6", name: "Important", color: "red" }
       ]
+    },
+    
+    {
+      id: "sample-13",
+      name: "Combined Research Notes.txt",
+      type: "txt" as FileType,
+      size: 352000,
+      createdAt: new Date("2024-01-12"),
+      modifiedAt: new Date("2024-03-08"),
+      path: [],
+      tags: [
+        { id: "tag1", name: "Research", color: "blue" },
+        { id: "tag3", name: "Methodology", color: "purple" },
+        { id: "tag6", name: "Important", color: "red" }
+      ],
+      content: "Comprehensive research notes covering multiple aspects of the study."
+    },
+    {
+      id: "sample-14",
+      name: "Final Analysis.pdf",
+      type: "pdf" as FileType,
+      size: 892000,
+      createdAt: new Date("2024-02-20"),
+      modifiedAt: new Date("2024-03-15"),
+      path: ["Data Collection"],
+      tags: [
+        { id: "tag4", name: "Results", color: "orange" },
+        { id: "tag5", name: "Discussion", color: "yellow" },
+        { id: "tag6", name: "Important", color: "red" }
+      ],
+      content: "Complete analysis and discussion of research findings."
     }
   ];
   
@@ -304,8 +427,12 @@ export const addSampleFiles = (): void => {
   const filesJson = localStorage.getItem("files");
   let files = filesJson ? JSON.parse(filesJson) : [];
   
-  // Check if we already have sample files
-  if (files.length === 0) {
+  // Only add sample files if there are fewer than 10 files
+  // This prevents adding duplicate samples on every load
+  if (files.length < 10) {
+    // Clear any existing files to ensure a clean start
+    localStorage.setItem("files", JSON.stringify([]));
+    
     // Add sample files to storage
     sampleFiles.forEach(file => saveFile(file));
   }
