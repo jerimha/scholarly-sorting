@@ -6,20 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  CalendarIcon, 
-  Clock, 
-  Download, 
-  FileText, 
-  PresentationIcon,
-  FileSpreadsheet,
-  File,
-  ImageIcon, 
-  Save, 
-  Star, 
-  StarOff, 
-  XIcon 
-} from "lucide-react";
+import { CalendarIcon, Clock, Download, FileText, ImageIcon, Save, Star, StarOff, XIcon } from "lucide-react";
 import { saveFileContent } from "@/lib/storage";
 import { toast } from "sonner";
 
@@ -51,26 +38,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
     }
   };
   
-  // Check if file type is a document that can be displayed as text
   const isTextFile = ['txt', 'docx', 'pdf'].includes(file.type);
-  
-  // Render appropriate file type icon
-  const renderFileTypeIcon = () => {
-    switch (file.type) {
-      case 'image':
-        return <div className="bg-blue-100 text-blue-800 p-2 rounded"><ImageIcon size={24} /></div>;
-      case 'pdf':
-        return <div className="bg-red-100 text-red-800 p-2 rounded"><FileText size={24} /></div>;
-      case 'docx':
-        return <div className="bg-blue-100 text-blue-800 p-2 rounded"><FileText size={24} /></div>;
-      case 'pptx':
-        return <div className="bg-orange-100 text-orange-800 p-2 rounded"><PresentationIcon size={24} /></div>;
-      case 'xlsx':
-        return <div className="bg-green-100 text-green-800 p-2 rounded"><FileSpreadsheet size={24} /></div>;
-      default:
-        return <div className="bg-indigo-100 text-indigo-800 p-2 rounded"><File size={24} /></div>;
-    }
-  };
   
   return (
     <div className="flex flex-col h-full">
@@ -98,7 +66,15 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       <div className="p-4 space-y-4 flex-1 overflow-auto">
         <div className="bg-accent/50 p-4 rounded-lg">
           <div className="flex items-center mb-4">
-            {renderFileTypeIcon()}
+            {file.type === 'image' ? (
+              <div className="bg-blue-100 text-blue-800 p-2 rounded">
+                <ImageIcon size={24} />
+              </div>
+            ) : (
+              <div className="bg-indigo-100 text-indigo-800 p-2 rounded">
+                <FileText size={24} />
+              </div>
+            )}
             <div className="ml-3">
               <h3 className="font-medium">{file.name}</h3>
               <p className="text-sm text-muted-foreground">
@@ -149,8 +125,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
           </div>
         )}
         
-        {/* Content preview section */}
-        {(isTextFile || file.type === 'pptx' || file.type === 'xlsx') && (
+        {isTextFile && (
           <>
             <Separator />
             
@@ -177,14 +152,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
                 />
               ) : (
                 <div className="bg-muted p-3 rounded min-h-[200px] whitespace-pre-wrap">
-                  {content ? (
-                    content
-                  ) : (
-                    <div className="text-muted-foreground italic flex flex-col items-center justify-center h-full">
-                      <p>Preview not available for this file type.</p>
-                      <p className="mt-2">Download the file to view its contents.</p>
-                    </div>
-                  )}
+                  {content || <span className="text-muted-foreground italic">No content</span>}
                 </div>
               )}
             </div>

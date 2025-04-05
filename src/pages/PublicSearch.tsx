@@ -3,25 +3,17 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { 
-  Search, 
-  FileText, 
-  Shield, 
-  File,
-  PresentationIcon,
-  FileSpreadsheet,
-  Image
-} from "lucide-react";
+import { Search, FileText, Shield } from "lucide-react";
 import { formatFileSize } from "@/lib/data";
-import { File as FileType } from "@/types";
+import { File } from "@/types";
 import { getAllFilesFromStorage } from "@/lib/storage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const PublicSearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [results, setResults] = useState<FileType[]>([]);
-  const [allFiles, setAllFiles] = useState<FileType[]>([]);
-  const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
+  const [results, setResults] = useState<File[]>([]);
+  const [allFiles, setAllFiles] = useState<File[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const navigate = useNavigate();
 
   // Load all files from localStorage on component mount
@@ -40,24 +32,6 @@ const PublicSearch = () => {
       setResults(foundFiles);
     } else {
       setResults([]);
-    }
-  };
-
-  // Function to render file type icon
-  const renderFileIcon = (fileType: string) => {
-    switch (fileType) {
-      case 'image':
-        return <Image className="h-5 w-5 text-blue-500" />;
-      case 'pdf':
-        return <FileText className="h-5 w-5 text-red-500" />;
-      case 'docx':
-        return <FileText className="h-5 w-5 text-blue-600" />;
-      case 'pptx':
-        return <PresentationIcon className="h-5 w-5 text-orange-500" />;
-      case 'xlsx':
-        return <FileSpreadsheet className="h-5 w-5 text-green-600" />;
-      default:
-        return <FileText className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -112,8 +86,8 @@ const PublicSearch = () => {
                     onClick={() => setSelectedFile(file)}
                   >
                     <div className="flex items-center">
-                      {renderFileIcon(file.type)}
-                      <div className="ml-3">
+                      <FileText className="h-5 w-5 text-muted-foreground mr-3" />
+                      <div>
                         <p className="font-medium">{file.name}</p>
                         <p className="text-sm text-muted-foreground">
                           {file.tags.map(tag => tag.name).join(", ")}

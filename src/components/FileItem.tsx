@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { deleteFile } from "@/lib/storage"; 
 import { File as FileType } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { File, FileText, Image, FileSpreadsheet, PresentationIcon, Star, Trash2 } from "lucide-react";
+import { File, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
@@ -34,26 +34,6 @@ const FileItem = ({ file, onSelect, className, onDelete }: FileItemProps) => {
       onDelete();
     }
   };
-
-  // Function to render appropriate icon based on file type
-  const renderFileIcon = () => {
-    switch (file.type) {
-      case 'image':
-        return <Image size={32} className="text-blue-500" />;
-      case 'pdf':
-        return <FileText size={32} className="text-red-500" />;
-      case 'docx':
-        return <FileText size={32} className="text-blue-600" />;
-      case 'pptx':
-        return <PresentationIcon size={32} className="text-orange-500" />;
-      case 'xlsx':
-        return <FileSpreadsheet size={32} className="text-green-600" />;
-      case 'txt':
-        return <FileText size={32} className="text-gray-600" />;
-      default:
-        return <File size={32} className="text-primary" />;
-    }
-  };
   
   return (
     <Card 
@@ -65,7 +45,7 @@ const FileItem = ({ file, onSelect, className, onDelete }: FileItemProps) => {
       <CardContent className="p-4 flex flex-col items-center">
         <div className="relative">
           <div className="w-16 h-16 flex items-center justify-center bg-primary/10 rounded-lg mb-2">
-            {renderFileIcon()}
+            <File size={32} className="text-primary" />
             <span className="absolute -right-2 -bottom-1 bg-secondary text-xs font-medium px-1 rounded">
               {extension}
             </span>
