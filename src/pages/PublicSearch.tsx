@@ -7,11 +7,13 @@ import { Search, FileText, Shield } from "lucide-react";
 import { formatFileSize } from "@/lib/data";
 import { File } from "@/types";
 import { getAllFilesFromStorage } from "@/lib/storage";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const PublicSearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<File[]>([]);
   const [allFiles, setAllFiles] = useState<File[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const navigate = useNavigate();
 
   // Load all files from localStorage on component mount
@@ -78,7 +80,11 @@ const PublicSearch = () => {
               <h3 className="font-medium">{results.length} results found</h3>
               <div className="divide-y">
                 {results.map((file) => (
-                  <div key={file.id} className="py-3 flex items-center justify-between">
+                  <div 
+                    key={file.id} 
+                    className="py-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 px-2 rounded"
+                    onClick={() => setSelectedFile(file)}
+                  >
                     <div className="flex items-center">
                       <FileText className="h-5 w-5 text-muted-foreground mr-3" />
                       <div>
@@ -111,6 +117,58 @@ const PublicSearch = () => {
           )}
         </div>
       </main>
+
+      <Dialog open={!!selectedFile} onOpenChange={(open) => !open && setSelectedFile(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{selectedFile?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            {selectedFile?.type === 'image' && selectedFile?.content ? (
+              <div className="border rounded-lg overflow-hidden">
+                <img 
+                  src={selectedFile.content} 
+                  alt={selectedFile.name}
+                  className="w-full h-auto"
+                />
+              </div>
+            ) : (
+              <div className="bg-muted p-4 rounded whitespace-pre-wrap max-h-80 overflow-y-auto">
+                {selectedFile?.content ? (
+                  selectedFile.content
+                ) : (
+                  <span className="text-muted-foreground italic">No preview available. Login for full access.</span>
+                )}
+              </div>
+            )}
+            
+            <div className="mt-4 flex flex-wrap gap-2">
+              {selectedFile?.tags.map(tag => (
+                <span 
+                  key={tag.id}
+                  className={`px-2 py-1 rounded-full text-xs ${
+                    tag.color === "blue" ? "bg-blue-100 text-blue-800" :
+                    tag.color === "green" ? "bg-green-100 text-green-800" :
+                    tag.color === "purple" ? "bg-purple-100 text-purple-800" :
+                    tag.color === "orange" ? "bg-orange-100 text-orange-800" :
+                    tag.color === "yellow" ? "bg-yellow-100 text-yellow-800" :
+                    tag.color === "red" ? "bg-red-100 text-red-800" : ""
+                  }`}
+                >
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <Button onClick={() => navigate("/login")} className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Login for full access
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <footer className="bg-white py-4 text-center text-sm text-muted-foreground border-t">
         <p>© 2025 TheSpect. All rights reserved.</p>
