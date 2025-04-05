@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import {
   FileText, 
   Shield, 
   File,
-  FilePresentation,
+  PresentationIcon,
   FileSpreadsheet,
   Image
 } from "lucide-react";
@@ -52,7 +53,7 @@ const PublicSearch = () => {
       case 'docx':
         return <FileText className="h-5 w-5 text-blue-600" />;
       case 'pptx':
-        return <FilePresentation className="h-5 w-5 text-orange-500" />;
+        return <PresentationIcon className="h-5 w-5 text-orange-500" />;
       case 'xlsx':
         return <FileSpreadsheet className="h-5 w-5 text-green-600" />;
       default:

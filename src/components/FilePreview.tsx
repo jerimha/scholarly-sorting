@@ -11,7 +11,7 @@ import {
   Clock, 
   Download, 
   FileText, 
-  FilePresentation,
+  PresentationIcon,
   FileSpreadsheet,
   File,
   ImageIcon, 
@@ -64,7 +64,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       case 'docx':
         return <div className="bg-blue-100 text-blue-800 p-2 rounded"><FileText size={24} /></div>;
       case 'pptx':
-        return <div className="bg-orange-100 text-orange-800 p-2 rounded"><FilePresentation size={24} /></div>;
+        return <div className="bg-orange-100 text-orange-800 p-2 rounded"><PresentationIcon size={24} /></div>;
       case 'xlsx':
         return <div className="bg-green-100 text-green-800 p-2 rounded"><FileSpreadsheet size={24} /></div>;
       default:

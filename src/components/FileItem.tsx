@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { deleteFile } from "@/lib/storage"; 
 import { File as FileType } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { File, FileText, Image, FileSpreadsheet, FilePresentation, Star, Trash2 } from "lucide-react";
+import { File, FileText, Image, FileSpreadsheet, PresentationIcon, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
@@ -45,7 +45,7 @@ const FileItem = ({ file, onSelect, className, onDelete }: FileItemProps) => {
       case 'docx':
         return <FileText size={32} className="text-blue-600" />;
       case 'pptx':
-        return <FilePresentation size={32} className="text-orange-500" />;
+        return <PresentationIcon size={32} className="text-orange-500" />;
       case 'xlsx':
         return <FileSpreadsheet size={32} className="text-green-600" />;
       case 'txt':
