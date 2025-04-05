@@ -1,18 +1,22 @@
 
 import { formatFileSize, getFileTypeIcon } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { deleteFile } from "@/lib/storage"; 
 import { File as FileType } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { File, Star } from "lucide-react";
+import { File, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 
 interface FileItemProps {
   file: FileType;
   onSelect: (file: FileType) => void;
   className?: string;
+  onDelete?: () => void;
 }
 
-const FileItem = ({ file, onSelect, className }: FileItemProps) => {
+const FileItem = ({ file, onSelect, className, onDelete }: FileItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
   
   // Get file extension for the icon
@@ -22,9 +26,18 @@ const FileItem = ({ file, onSelect, className }: FileItemProps) => {
   
   const extension = getFileExtension(file.name).toUpperCase();
   
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    deleteFile(file.id);
+    toast.success(`"${file.name}" moved to trash`);
+    if (onDelete) {
+      onDelete();
+    }
+  };
+  
   return (
     <Card 
-      className={cn("file-card cursor-pointer", className)}
+      className={cn("file-card cursor-pointer group relative", className)}
       onClick={() => onSelect(file)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -76,6 +89,29 @@ const FileItem = ({ file, onSelect, className }: FileItemProps) => {
           )}
         </div>
       </CardContent>
+      
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <button 
+            className="absolute top-1 right-1 bg-white bg-opacity-80 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Trash2 size={16} className="text-red-500" />
+          </button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete file</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to move "{file.name}" to trash? You can restore it from the trash for up to 30 days.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Move to trash</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

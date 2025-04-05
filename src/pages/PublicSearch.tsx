@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { Search, FileText, Shield } from "lucide-react";
-import { formatFileSize, searchFiles } from "@/lib/data";
+import { formatFileSize } from "@/lib/data";
 import { File } from "@/types";
 import { getAllFilesFromStorage } from "@/lib/storage";
 

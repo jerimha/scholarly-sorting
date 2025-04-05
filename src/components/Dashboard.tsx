@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { File, Folder, Tag } from "@/types";
 import { filterFilesByTag, formatFileSize, getAllFiles, getRootFiles, getRootFolders, sampleTags, searchFiles } from "@/lib/data";
@@ -7,9 +8,11 @@ import FolderItem from "./FolderItem";
 import FilePreview from "./FilePreview";
 import SearchBar from "./SearchBar";
 import FileUploader from "./FileUploader";
+import TrashButton from "./TrashButton";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { ChevronRight, Home, PlusCircle } from "lucide-react";
+import { addSampleFiles } from "@/lib/storage";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -18,6 +21,12 @@ const Dashboard = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [displayedFiles, setDisplayedFiles] = useState<File[]>([]);
   const [displayedFolders, setDisplayedFolders] = useState<Folder[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  // Load sample files on first mount
+  useEffect(() => {
+    addSampleFiles();
+  }, []);
   
   useEffect(() => {
     setSearchQuery("");
@@ -76,7 +85,7 @@ const Dashboard = () => {
     
     setDisplayedFolders(currentFolders);
     setDisplayedFiles(currentFiles);
-  }, [activeTab, currentPath]);
+  }, [activeTab, currentPath, refreshTrigger]);
   
   useEffect(() => {
     if (activeTab === "search" && searchQuery) {
@@ -121,6 +130,13 @@ const Dashboard = () => {
     setCurrentPath([]);
   };
   
+  const handleFileDeleted = () => {
+    setRefreshTrigger(prev => prev + 1);
+    if (selectedFile) {
+      setSelectedFile(null);
+    }
+  };
+  
   return (
     <div className="flex h-screen">
       <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
@@ -142,7 +158,8 @@ const Dashboard = () => {
             
             <div className="flex items-center gap-2">
               <SearchBar value={searchQuery} onChange={handleSearchChange} />
-              {activeTab === "all" && <FileUploader currentPath={currentPath} />}
+              <TrashButton />
+              {activeTab === "all" && <FileUploader currentPath={currentPath} onUploadComplete={() => setRefreshTrigger(prev => prev + 1)} />}
             </div>
           </div>
           
@@ -201,6 +218,7 @@ const Dashboard = () => {
                       key={file.id} 
                       file={file}
                       onSelect={handleFileSelect}
+                      onDelete={handleFileDeleted}
                     />
                   ))}
                 </div>
@@ -217,7 +235,7 @@ const Dashboard = () => {
                       ? "Try a different search term or browse through your folders." 
                       : "Upload files or create folders to organize your thesis."}
                   </p>
-                  {activeTab === "all" && <FileUploader currentPath={currentPath} />}
+                  {activeTab === "all" && <FileUploader currentPath={currentPath} onUploadComplete={() => setRefreshTrigger(prev => prev + 1)} />}
                 </div>
               )
             )}

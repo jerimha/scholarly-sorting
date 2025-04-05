@@ -19,6 +19,7 @@ export interface File {
   content?: string;
   notes?: string;
   starred?: boolean;
+  deletedAt?: Date; // Added for trash functionality
 }
 
 export interface Folder {
