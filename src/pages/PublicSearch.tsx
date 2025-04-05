@@ -3,11 +3,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { Search, FileText, Shield } from "lucide-react";
+import { Search, FileText, Shield, Download } from "lucide-react";
 import { formatFileSize } from "@/lib/data";
 import { File } from "@/types";
 import { getAllFilesFromStorage } from "@/lib/storage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 const PublicSearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,6 +33,61 @@ const PublicSearch = () => {
       setResults(foundFiles);
     } else {
       setResults([]);
+    }
+  };
+  
+  const handleDownload = (file: File) => {
+    try {
+      let dataUrl, mimeType;
+      
+      // Set mime type based on file type
+      switch (file.type) {
+        case 'pdf':
+          mimeType = 'application/pdf';
+          break;
+        case 'docx':
+          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          break;
+        case 'txt':
+          mimeType = 'text/plain';
+          break;
+        case 'image':
+          mimeType = 'image/png'; 
+          break;
+        default:
+          mimeType = 'application/octet-stream';
+      }
+      
+      // For images, the content is likely already a data URL
+      if (file.type === 'image' && file.content && file.content.startsWith('data:')) {
+        dataUrl = file.content;
+      } else if (file.content) {
+        // For text-based files, convert content to blob
+        const blob = new Blob([file.content], { type: mimeType });
+        dataUrl = URL.createObjectURL(blob);
+      } else {
+        // If no content, create an empty file
+        const blob = new Blob(['No content available'], { type: 'text/plain' });
+        dataUrl = URL.createObjectURL(blob);
+      }
+      
+      // Create download link
+      const downloadLink = document.createElement('a');
+      downloadLink.href = dataUrl;
+      downloadLink.download = file.name;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Clean up the object URL to avoid memory leaks
+      if (!file.type === 'image' || !file.content?.startsWith('data:')) {
+        URL.revokeObjectURL(dataUrl);
+      }
+      
+      toast.success(`Downloading ${file.name}`);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download file');
     }
   };
 
@@ -160,7 +216,16 @@ const PublicSearch = () => {
               ))}
             </div>
             
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex justify-between">
+              <Button 
+                onClick={() => selectedFile && handleDownload(selectedFile)} 
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+              
               <Button onClick={() => navigate("/login")} className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 Login for full access

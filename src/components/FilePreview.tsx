@@ -37,6 +37,62 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       toast.error("Failed to save file content");
     }
   };
+
+  const handleDownload = () => {
+    // Create a download for the file based on its type
+    try {
+      let dataUrl, filename, mimeType;
+      
+      // Set mime type based on file type
+      switch (file.type) {
+        case 'pdf':
+          mimeType = 'application/pdf';
+          break;
+        case 'docx':
+          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          break;
+        case 'txt':
+          mimeType = 'text/plain';
+          break;
+        case 'image':
+          mimeType = 'image/png'; // Assuming PNG, but could be other formats
+          break;
+        default:
+          mimeType = 'application/octet-stream';
+      }
+      
+      // For images, the content is likely already a data URL
+      if (file.type === 'image' && file.content && file.content.startsWith('data:')) {
+        dataUrl = file.content;
+      } else if (file.content) {
+        // For text-based files, convert content to blob
+        const blob = new Blob([file.content], { type: mimeType });
+        dataUrl = URL.createObjectURL(blob);
+      } else {
+        // If no content, create an empty file
+        const blob = new Blob(['No content available'], { type: 'text/plain' });
+        dataUrl = URL.createObjectURL(blob);
+      }
+      
+      // Create download link
+      const downloadLink = document.createElement('a');
+      downloadLink.href = dataUrl;
+      downloadLink.download = file.name;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Clean up the object URL to avoid memory leaks
+      if (!file.type === 'image' || !file.content?.startsWith('data:')) {
+        URL.revokeObjectURL(dataUrl);
+      }
+      
+      toast.success(`Downloading ${file.name}`);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download file');
+    }
+  };
   
   const isTextFile = ['txt', 'docx', 'pdf'].includes(file.type);
   
@@ -192,7 +248,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       </div>
       
       <div className="p-4 border-t">
-        <Button className="w-full">
+        <Button className="w-full" onClick={handleDownload}>
           <Download size={16} className="mr-2" />
           Download
         </Button>

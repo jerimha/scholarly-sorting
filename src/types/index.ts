@@ -1,5 +1,5 @@
 
-export type FileType = 'pdf' | 'docx' | 'txt' | 'image' | 'folder' | 'other';
+export type FileType = 'pdf' | 'docx' | 'txt' | 'image' | 'pptx' | 'xlsx' | 'folder' | 'other';
 
 export interface Tag {
   id: string;
