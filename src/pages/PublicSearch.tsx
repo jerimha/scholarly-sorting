@@ -111,7 +111,7 @@ const PublicSearch = () => {
       document.body.removeChild(downloadLink);
       
       // Clean up the object URL to avoid memory leaks
-      if (!(file.type === 'image') || !(file.content?.startsWith('data:'))) {
+      if (!(file.type === 'image' && file.content?.startsWith('data:'))) {
         URL.revokeObjectURL(dataUrl);
       }
       
@@ -209,6 +209,12 @@ const PublicSearch = () => {
                           </p>
                         )}
                         <div className="flex flex-wrap gap-2 mt-2">
+                          {file.publicationYear && (
+                            <Badge className="bg-blue-100 text-blue-800 border-blue-200 flex items-center gap-1">
+                              <Calendar size={10} />
+                              {file.publicationYear}
+                            </Badge>
+                          )}
                           {file.tags.map(tag => (
                             <Badge key={tag.id} variant="outline" className={`text-xs ${
                               tag.color === "blue" ? "bg-blue-50 text-blue-700" :
@@ -225,7 +231,6 @@ const PublicSearch = () => {
                       </div>
                     </div>
                     <div className="text-right flex flex-col items-end">
-                      <Badge className="mb-1">{file.publicationYear}</Badge>
                       <p className="text-sm text-muted-foreground">
                         {formatFileSize(file.size)}
                       </p>
@@ -261,7 +266,10 @@ const PublicSearch = () => {
               <div>
                 {selectedFile?.name}
                 {selectedFile?.publicationYear && (
-                  <Badge className="ml-2">{selectedFile.publicationYear}</Badge>
+                  <Badge className="ml-2 bg-blue-100 text-blue-800 border-blue-200">
+                    <Calendar size={12} className="mr-1" />
+                    {selectedFile.publicationYear}
+                  </Badge>
                 )}
               </div>
               {selectedFile?.downloadable === false && (

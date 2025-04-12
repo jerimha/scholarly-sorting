@@ -89,7 +89,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       document.body.removeChild(downloadLink);
       
       // Clean up the object URL to avoid memory leaks
-      if (!(file.type === 'image') || !(file.content?.startsWith('data:'))) {
+      if (!(file.type === 'image' && file.content?.startsWith('data:'))) {
         URL.revokeObjectURL(dataUrl);
       }
       
@@ -139,10 +139,17 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
               </div>
             )}
             <div className="ml-3">
-              <h3 className="font-medium">{file.name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium">{file.name}</h3>
+                {file.publicationYear && (
+                  <Badge className="bg-blue-100 text-blue-800 border-blue-200 flex items-center gap-1">
+                    <CalendarIcon size={10} />
+                    {file.publicationYear}
+                  </Badge>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
                 {file.size && formatFileSize(file.size)}
-                {file.publicationYear && ` • Published: ${file.publicationYear}`}
               </p>
             </div>
           </div>
