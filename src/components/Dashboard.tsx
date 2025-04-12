@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { File, Folder, Tag } from "@/types";
 import { filterFilesByTag, formatFileSize, getAllFiles, getRootFiles, getRootFolders, sampleTags, searchFiles } from "@/lib/data";
@@ -10,10 +11,8 @@ import FileUploader from "./FileUploader";
 import TrashButton from "./TrashButton";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import { ChevronRight, Home, PlusCircle, BookOpen } from "lucide-react";
+import { ChevronRight, Home, PlusCircle } from "lucide-react";
 import { addSampleFiles } from "@/lib/storage";
-import { useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -23,7 +22,6 @@ const Dashboard = () => {
   const [displayedFiles, setDisplayedFiles] = useState<File[]>([]);
   const [displayedFolders, setDisplayedFolders] = useState<Folder[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const navigate = useNavigate();
   
   // Load sample files on first mount
   useEffect(() => {
@@ -139,10 +137,6 @@ const Dashboard = () => {
     }
   };
   
-  const navigateToResearch = () => {
-    navigate("/research");
-  };
-  
   return (
     <div className="flex h-screen">
       <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
@@ -163,14 +157,6 @@ const Dashboard = () => {
             </h1>
             
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                className="flex items-center gap-2"
-                onClick={navigateToResearch}
-              >
-                <BookOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">IT Research Papers</span>
-              </Button>
               <SearchBar value={searchQuery} onChange={handleSearchChange} />
               <TrashButton />
               {activeTab === "all" && <FileUploader currentPath={currentPath} onUploadComplete={() => setRefreshTrigger(prev => prev + 1)} />}
