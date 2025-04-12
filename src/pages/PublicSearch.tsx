@@ -1,7 +1,5 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { Search, FileText, Shield, Download, Calendar, Lock, Filter, Info } from "lucide-react";
 import { formatFileSize } from "@/lib/data";
@@ -11,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import SearchBar from "@/components/SearchBar";
 
 const PublicSearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,10 +56,10 @@ const PublicSearch = () => {
     setResults(filteredFiles);
   };
   
-  // Filter files whenever year filter changes
+  // Filter files whenever year filter or search query changes
   useEffect(() => {
     handleSearch();
-  }, [yearFilter]);
+  }, [yearFilter, searchQuery]);
   
   const handleDownload = (file: File) => {
     if (file.downloadable === false) {
@@ -150,13 +149,9 @@ const PublicSearch = () => {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex flex-col md:flex-row gap-3 mb-6">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                placeholder="Search by title, author, or keywords..."
+              <SearchBar 
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
+                onChange={setSearchQuery}
               />
             </div>
             <div className="flex gap-2">
@@ -174,7 +169,6 @@ const PublicSearch = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={handleSearch}>Search</Button>
             </div>
           </div>
 
