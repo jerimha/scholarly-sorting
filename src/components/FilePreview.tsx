@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, Clock, Download, FileText, ImageIcon, Info, Lock, Save, Star, StarOff, XIcon } from "lucide-react";
+import { CalendarIcon, Clock, Download, FileText, ImageIcon, Save, Star, StarOff, XIcon } from "lucide-react";
 import { saveFileContent } from "@/lib/storage";
 import { toast } from "sonner";
 
@@ -39,12 +39,6 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
   };
 
   const handleDownload = () => {
-    // Check if file is downloadable
-    if (file.downloadable === false) {
-      toast.error("This research document is protected and cannot be downloaded");
-      return;
-    }
-    
     // Create a download for the file based on its type
     try {
       let dataUrl, filename, mimeType;
@@ -89,7 +83,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       document.body.removeChild(downloadLink);
       
       // Clean up the object URL to avoid memory leaks
-      if (!(file.type === 'image' && file.content?.startsWith('data:'))) {
+      if (!file.type === 'image' || !file.content?.startsWith('data:')) {
         URL.revokeObjectURL(dataUrl);
       }
       
@@ -101,7 +95,6 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
   };
   
   const isTextFile = ['txt', 'docx', 'pdf'].includes(file.type);
-  const isPdfResearch = file.publicationYear && file.type === 'pdf';
   
   return (
     <div className="flex flex-col h-full">
@@ -139,15 +132,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
               </div>
             )}
             <div className="ml-3">
-              <div className="flex items-center gap-2">
-                <h3 className="font-medium">{file.name}</h3>
-                {file.publicationYear && (
-                  <Badge className="bg-blue-100 text-blue-800 border-blue-200 flex items-center gap-1">
-                    <CalendarIcon size={10} />
-                    {file.publicationYear}
-                  </Badge>
-                )}
-              </div>
+              <h3 className="font-medium">{file.name}</h3>
               <p className="text-sm text-muted-foreground">
                 {file.size && formatFileSize(file.size)}
               </p>
@@ -174,13 +159,6 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
               </div>
             </div>
           </div>
-          
-          {file.authors && file.authors.length > 0 && (
-            <div className="mt-3">
-              <p className="text-sm text-muted-foreground">Authors</p>
-              <p className="text-sm mt-1">{file.authors.join(", ")}</p>
-            </div>
-          )}
         </div>
         
         {file.tags.length > 0 && (
@@ -203,44 +181,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
           </div>
         )}
         
-        {file.abstract && (
-          <div>
-            <h3 className="text-sm font-medium mb-1">Abstract</h3>
-            <div className="bg-muted p-3 rounded">
-              <p className="text-sm">{file.abstract}</p>
-            </div>
-          </div>
-        )}
-        
-        {isPdfResearch && (
-          <div className="border rounded-md p-3">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium">PDF Preview</h3>
-              {file.downloadable === false && (
-                <div className="flex items-center text-amber-600">
-                  <Lock size={14} className="mr-1" />
-                  <span className="text-xs">Protected content</span>
-                </div>
-              )}
-            </div>
-            <div className="bg-muted p-3 rounded min-h-[300px] flex items-center justify-center">
-              {file.content ? (
-                <iframe 
-                  src={file.content.startsWith('data:') ? file.content : `data:application/pdf;base64,${btoa(file.content)}`}
-                  className="w-full h-[400px] border-0"
-                  title={`${file.name} preview`}
-                ></iframe>
-              ) : (
-                <div className="text-center text-muted-foreground">
-                  <FileText size={36} className="mx-auto mb-2" />
-                  <p>PDF preview not available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        
-        {isTextFile && !isPdfResearch && (
+        {isTextFile && (
           <>
             <Separator />
             
@@ -307,22 +248,9 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       </div>
       
       <div className="p-4 border-t">
-        <Button 
-          className="w-full" 
-          onClick={handleDownload}
-          disabled={file.downloadable === false}
-        >
-          {file.downloadable === false ? (
-            <>
-              <Lock size={16} className="mr-2" />
-              Protected Document
-            </>
-          ) : (
-            <>
-              <Download size={16} className="mr-2" />
-              Download
-            </>
-          )}
+        <Button className="w-full" onClick={handleDownload}>
+          <Download size={16} className="mr-2" />
+          Download
         </Button>
       </div>
     </div>
