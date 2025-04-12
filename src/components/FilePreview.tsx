@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, Clock, Download, FileText, ImageIcon, Save, Star, StarOff, XIcon } from "lucide-react";
+import { CalendarIcon, Clock, Download, FileText, ImageIcon, Save, Star, StarOff, XIcon, AlertCircle } from "lucide-react";
 import { saveFileContent } from "@/lib/storage";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface FilePreviewProps {
   file: FileType;
@@ -39,6 +40,11 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
   };
 
   const handleDownload = () => {
+    if (file.isDownloadable === false) {
+      toast.error("This document cannot be downloaded");
+      return;
+    }
+    
     // Create a download for the file based on its type
     try {
       let dataUrl, filename, mimeType;
@@ -94,7 +100,8 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
     }
   };
   
-  const isTextFile = ['txt', 'docx', 'pdf'].includes(file.type);
+  const isResearchPaper = file.isResearchPaper;
+  const isPdfOnly = file.type === 'pdf' && (isResearchPaper || file.isDownloadable === false);
   
   return (
     <div className="flex flex-col h-full">
@@ -135,7 +142,13 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
               <h3 className="font-medium">{file.name}</h3>
               <p className="text-sm text-muted-foreground">
                 {file.size && formatFileSize(file.size)}
+                {isResearchPaper && file.publicationYear && ` • ${file.publicationYear}`}
               </p>
+              {isResearchPaper && file.authors && (
+                <p className="text-sm mt-1">
+                  {file.authors}
+                </p>
+              )}
             </div>
           </div>
           
@@ -161,6 +174,13 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
           </div>
         </div>
         
+        {isResearchPaper && file.abstract && (
+          <div>
+            <h3 className="text-sm font-medium mb-2">Abstract</h3>
+            <p className="text-sm bg-muted p-3 rounded">{file.abstract}</p>
+          </div>
+        )}
+        
         {file.tags.length > 0 && (
           <div>
             <h3 className="text-sm font-medium mb-2">Tags</h3>
@@ -181,48 +201,72 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
           </div>
         )}
         
-        {isTextFile && (
+        {isPdfOnly ? (
           <>
             <Separator />
-            
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium">Content</h3>
-                {isEditing ? (
-                  <Button size="sm" onClick={handleSaveContent}>
-                    <Save size={14} className="mr-1" />
-                    Save
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
-                    Edit
-                  </Button>
+              <h3 className="text-sm font-medium mb-2">PDF Preview</h3>
+              <div className="bg-muted p-6 rounded min-h-[300px] flex flex-col items-center justify-center text-center">
+                <FileText size={48} className="text-muted-foreground mb-4" />
+                <p className="font-medium">PDF Document</p>
+                <p className="text-sm text-muted-foreground mt-1">This document can only be viewed as a PDF</p>
+                {file.isDownloadable === false && (
+                  <Alert className="mt-4 bg-amber-50">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      This document is protected and cannot be downloaded
+                    </AlertDescription>
+                  </Alert>
                 )}
               </div>
-              
-              {isEditing ? (
-                <Textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[200px]"
-                />
-              ) : (
-                <div className="bg-muted p-3 rounded min-h-[200px] whitespace-pre-wrap">
-                  {content || <span className="text-muted-foreground italic">No content</span>}
-                </div>
-              )}
             </div>
           </>
-        )}
-        
-        {file.type === 'image' && file.content && (
-          <div className="border rounded-lg overflow-hidden">
-            <img 
-              src={file.content} 
-              alt={file.name}
-              className="w-full h-auto"
-            />
-          </div>
+        ) : (
+          <>
+            {file.type !== 'image' && (
+              <>
+                <Separator />
+                
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium">Content</h3>
+                    {isEditing ? (
+                      <Button size="sm" onClick={handleSaveContent}>
+                        <Save size={14} className="mr-1" />
+                        Save
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+                        Edit
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {isEditing ? (
+                    <Textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      className="min-h-[200px]"
+                    />
+                  ) : (
+                    <div className="bg-muted p-3 rounded min-h-[200px] whitespace-pre-wrap">
+                      {content || <span className="text-muted-foreground italic">No content</span>}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+            
+            {file.type === 'image' && file.content && (
+              <div className="border rounded-lg overflow-hidden">
+                <img 
+                  src={file.content} 
+                  alt={file.name}
+                  className="w-full h-auto"
+                />
+              </div>
+            )}
+          </>
         )}
         
         <Separator />
@@ -248,9 +292,13 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       </div>
       
       <div className="p-4 border-t">
-        <Button className="w-full" onClick={handleDownload}>
+        <Button 
+          className="w-full" 
+          onClick={handleDownload}
+          disabled={file.isDownloadable === false}
+        >
           <Download size={16} className="mr-2" />
-          Download
+          {file.isDownloadable === false ? "Protected Document" : "Download"}
         </Button>
       </div>
     </div>

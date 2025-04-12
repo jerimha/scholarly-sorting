@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PublicSearch from "./pages/PublicSearch";
+import ResearchPapers from "./pages/ResearchPapers";
 import Trash from "./pages/Trash";
 import PrivateRoute from "./components/PrivateRoute";
 import { AuthProvider } from "./hooks/useAuth";
@@ -42,6 +43,7 @@ const App = () => {
               <Route path="/" element={<PublicSearch />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/research" element={<ResearchPapers />} />
               
               {/* Protected routes */}
               <Route element={<PrivateRoute />}>

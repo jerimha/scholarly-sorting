@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { Search, FileText, Shield, Download } from "lucide-react";
+import { Search, FileText, Shield, Download, BookOpen } from "lucide-react";
 import { formatFileSize } from "@/lib/data";
 import { File } from "@/types";
 import { getAllFilesFromStorage } from "@/lib/storage";
@@ -37,6 +37,11 @@ const PublicSearch = () => {
   };
   
   const handleDownload = (file: File) => {
+    if (file.isDownloadable === false) {
+      toast.error("This document cannot be downloaded");
+      return;
+    }
+    
     try {
       let dataUrl, mimeType;
       
@@ -98,14 +103,24 @@ const PublicSearch = () => {
           <FileText className="h-6 w-6 text-primary" />
           <h1 className="text-xl font-bold">TheSpect File Browser</h1>
         </div>
-        <Button 
-          onClick={() => navigate("/login")} 
-          variant="outline" 
-          className="flex items-center gap-2"
-        >
-          <Shield className="h-4 w-4" />
-          Admin Access
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => navigate("/research")} 
+            variant="outline" 
+            className="hidden sm:flex items-center gap-2"
+          >
+            <BookOpen className="h-4 w-4" />
+            Research Papers
+          </Button>
+          <Button 
+            onClick={() => navigate("/login")} 
+            variant="outline" 
+            className="flex items-center gap-2"
+          >
+            <Shield className="h-4 w-4" />
+            Admin Access
+          </Button>
+        </div>
       </header>
 
       <main className="flex-1 p-6 container mx-auto max-w-5xl">
@@ -114,6 +129,16 @@ const PublicSearch = () => {
           <p className="text-muted-foreground">
             Search for files in our repository. Login required to view or modify content.
           </p>
+          <div className="mt-4 sm:hidden">
+            <Button 
+              onClick={() => navigate("/research")} 
+              variant="outline" 
+              className="flex items-center gap-2 mx-auto"
+            >
+              <BookOpen className="h-4 w-4" />
+              Browse Research Papers
+            </Button>
+          </div>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md">
@@ -188,6 +213,16 @@ const PublicSearch = () => {
                   className="w-full h-auto"
                 />
               </div>
+            ) : selectedFile?.isResearchPaper || selectedFile?.type === 'pdf' ? (
+              <div className="bg-gray-50 p-6 rounded min-h-[200px] flex flex-col items-center justify-center text-center">
+                <FileText size={48} className="text-muted-foreground mb-4" />
+                <p className="font-medium">PDF Document</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {selectedFile?.isDownloadable === false ? 
+                    "This document is protected and can only be viewed in the app" : 
+                    "Login for full access to this document"}
+                </p>
+              </div>
             ) : (
               <div className="bg-muted p-4 rounded whitespace-pre-wrap max-h-80 overflow-y-auto">
                 {selectedFile?.content ? (
@@ -221,9 +256,10 @@ const PublicSearch = () => {
                 onClick={() => selectedFile && handleDownload(selectedFile)} 
                 variant="outline" 
                 className="flex items-center gap-2"
+                disabled={selectedFile?.isDownloadable === false}
               >
                 <Download className="h-4 w-4" />
-                Download
+                {selectedFile?.isDownloadable === false ? "Protected Document" : "Download"}
               </Button>
               
               <Button onClick={() => navigate("/login")} className="flex items-center gap-2">
