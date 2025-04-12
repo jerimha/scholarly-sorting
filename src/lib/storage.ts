@@ -198,26 +198,6 @@ export const getAllFilesFromStorage = (): File[] => {
   }
 };
 
-export const getAllResearchPapers = (): File[] => {
-  try {
-    const filesJson = localStorage.getItem("files");
-    let files = filesJson ? JSON.parse(filesJson) : [];
-    
-    // Filter research papers
-    files = files.filter((file: any) => file.isResearchPaper);
-    
-    // Convert date strings back to Date objects
-    return files.map((file: any) => ({
-      ...file,
-      createdAt: new Date(file.createdAt),
-      modifiedAt: new Date(file.modifiedAt)
-    }));
-  } catch (error) {
-    console.error("Error getting research papers:", error);
-    return [];
-  }
-};
-
 export const getTrashFromStorage = (): File[] => {
   try {
     const trashJson = localStorage.getItem("trash");
@@ -249,7 +229,6 @@ export const getFileById = (fileId: string): File | null => {
 
 // Add sample files to the storage
 export const addSampleFiles = (): void => {
-  // Original sample files
   const sampleFiles = [
     {
       id: "sample-1",
@@ -441,409 +420,241 @@ export const addSampleFiles = (): void => {
         { id: "tag6", name: "Important", color: "red" }
       ],
       content: "Complete analysis and discussion of research findings."
-    }
-  ];
-  
-  // Research Papers (one per year from 2000-2020)
-  const researchPapers = [
-    {
-      id: "research-2000",
-      name: "The Evolution of Computer Networks: A 21st Century Perspective.pdf",
-      type: "pdf" as FileType,
-      size: 4250000,
-      createdAt: new Date("2000-05-15"),
-      modifiedAt: new Date("2000-05-15"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-networks", name: "Networks", color: "blue" },
-        { id: "tag-infrastructure", name: "Infrastructure", color: "green" }
-      ],
-      content: "Sample PDF content for network evolution research paper.",
-      authors: "Michael T. Johnson, Sarah Chen",
-      abstract: "This paper examines the fundamental changes in computer networking architecture at the dawn of the 21st century. The research tracks the evolution from basic LAN structures to emerging WAN technologies, predicting future developments in network infrastructure and protocols.",
-      publicationYear: "2000",
-      isResearchPaper: true,
-      isDownloadable: false
     },
+    
     {
-      id: "research-2001",
-      name: "Security Protocols in Distributed Systems.pdf",
+      id: "it-research-1",
+      name: "Evolution of Cloud Computing Architectures.pdf",
       type: "pdf" as FileType,
-      size: 3780000,
-      createdAt: new Date("2001-03-22"),
-      modifiedAt: new Date("2001-03-22"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-security", name: "Security", color: "red" },
-        { id: "tag-distributed", name: "Distributed Systems", color: "purple" }
-      ],
-      content: "Sample PDF content for security protocols research paper.",
-      authors: "David R. Williams, Anna Rodriguez",
-      abstract: "This research evaluates early 21st century approaches to security in distributed computing environments. The paper analyzes encryption methods, authentication protocols, and emerging threats in networked systems, proposing a framework for robust security implementations.",
-      publicationYear: "2001",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2002",
-      name: "XML-Based Data Exchange Standards in Enterprise Systems.pdf",
-      type: "pdf" as FileType,
-      size: 2950000,
-      createdAt: new Date("2002-07-10"),
-      modifiedAt: new Date("2002-07-10"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-xml", name: "XML", color: "yellow" },
-        { id: "tag-enterprise", name: "Enterprise Systems", color: "blue" }
-      ],
-      content: "Sample PDF content for XML standards research paper.",
-      authors: "Robert Chang, Elizabeth Norton",
-      abstract: "This paper investigates the standardization of XML-based data exchange formats in enterprise systems. The research highlights the importance of structured data formats for business process integration and presents case studies of early XML implementation successes.",
-      publicationYear: "2002",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2003",
-      name: "Web Services Architecture: Principles and Applications.pdf",
-      type: "pdf" as FileType,
-      size: 4120000,
-      createdAt: new Date("2003-09-05"),
-      modifiedAt: new Date("2003-09-05"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-webservices", name: "Web Services", color: "green" },
-        { id: "tag-soa", name: "SOA", color: "purple" }
-      ],
-      content: "Sample PDF content for web services architecture research paper.",
-      authors: "Thomas Lee, Jennifer Hoffman",
-      abstract: "This research examines the emergence of web services as a paradigm for distributed application development. The paper outlines architectural principles, implementation patterns, and early adoption challenges in service-oriented architectures.",
-      publicationYear: "2003",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2004",
-      name: "Mobile Computing: Challenges in Enterprise Integration.pdf",
-      type: "pdf" as FileType,
-      size: 3560000,
-      createdAt: new Date("2004-04-18"),
-      modifiedAt: new Date("2004-04-18"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-mobile", name: "Mobile Computing", color: "orange" },
-        { id: "tag-enterprise", name: "Enterprise Systems", color: "blue" }
-      ],
-      content: "Sample PDF content for mobile computing research paper.",
-      authors: "Catherine Martinez, Paul Thompson",
-      abstract: "This paper investigates the technical and organizational challenges of integrating mobile computing solutions within enterprise IT environments. The research addresses synchronization issues, security concerns, and platform fragmentation in early smartphone adoption scenarios.",
-      publicationYear: "2004",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2005",
-      name: "Open Source Development Models in Enterprise Software.pdf",
-      type: "pdf" as FileType,
-      size: 3980000,
-      createdAt: new Date("2005-11-30"),
-      modifiedAt: new Date("2005-11-30"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-opensource", name: "Open Source", color: "red" },
-        { id: "tag-enterprise", name: "Enterprise Software", color: "blue" }
-      ],
-      content: "Sample PDF content for open source research paper.",
-      authors: "James Wilson, Samantha Kumar",
-      abstract: "This research examines how open source development methodologies are being adapted for enterprise software projects. The paper presents case studies of large organizations implementing open source practices while maintaining corporate governance requirements.",
-      publicationYear: "2005",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2006",
-      name: "Virtualization Technologies: Performance Analysis and Use Cases.pdf",
-      type: "pdf" as FileType,
-      size: 4890000,
-      createdAt: new Date("2006-08-12"),
-      modifiedAt: new Date("2006-08-12"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-virtualization", name: "Virtualization", color: "green" },
-        { id: "tag-infrastructure", name: "Infrastructure", color: "purple" }
-      ],
-      content: "Sample PDF content for virtualization technologies research paper.",
-      authors: "Daniel Brown, Lisa Zhang",
-      abstract: "This paper evaluates the performance implications of early server virtualization technologies. The research compares different virtualization approaches, measures overhead costs, and identifies optimal usage patterns for enterprise deployments.",
-      publicationYear: "2006",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2007",
-      name: "Service-Oriented Architecture in Financial Systems.pdf",
-      type: "pdf" as FileType,
-      size: 3240000,
-      createdAt: new Date("2007-02-27"),
-      modifiedAt: new Date("2007-02-27"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-soa", name: "SOA", color: "yellow" },
-        { id: "tag-finance", name: "Financial Systems", color: "blue" }
-      ],
-      content: "Sample PDF content for SOA in finance research paper.",
-      authors: "Laura Garcia, Mark Stevenson",
-      abstract: "This research investigates how service-oriented architecture principles are being applied to financial information systems. The paper examines integration challenges, compliance requirements, and performance considerations unique to banking and financial services implementations.",
-      publicationYear: "2007",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2008",
-      name: "Cloud Computing Models for Enterprise Applications.pdf",
-      type: "pdf" as FileType,
-      size: 4560000,
-      createdAt: new Date("2008-10-15"),
-      modifiedAt: new Date("2008-10-15"),
+      size: 2540000,
+      createdAt: new Date("2023-06-12"),
+      modifiedAt: new Date("2023-06-12"),
       path: ["IT Research"],
       tags: [
         { id: "tag-cloud", name: "Cloud Computing", color: "blue" },
-        { id: "tag-enterprise", name: "Enterprise Applications", color: "green" }
+        { id: "tag-architecture", name: "Architecture", color: "purple" }
       ],
-      content: "Sample PDF content for cloud computing research paper.",
-      authors: "Richard Taylor, Emily Washington",
-      abstract: "This paper examines early cloud computing service models and their applicability to enterprise application scenarios. The research evaluates SaaS, PaaS, and IaaS approaches, identifying technical and organizational factors influencing successful adoption.",
-      publicationYear: "2008",
-      isResearchPaper: true,
-      isDownloadable: false
+      content: "Comprehensive analysis of cloud computing architectures and their evolution.",
+      publicationYear: 2023,
+      authors: ["Dr. Sarah Chen", "Dr. Robert Miller"],
+      abstract: "This paper examines the evolution of cloud computing architectures from 2000 to 2023, analyzing key technological shifts and emerging paradigms. We review the transition from traditional virtualization to containerization and serverless computing, evaluating performance implications and future directions.",
+      downloadable: false
     },
     {
-      id: "research-2009",
-      name: "NoSQL Database Systems: Architecture and Performance.pdf",
+      id: "it-research-2",
+      name: "Quantum Computing Applications in Cryptography.pdf",
       type: "pdf" as FileType,
-      size: 3670000,
-      createdAt: new Date("2009-06-23"),
-      modifiedAt: new Date("2009-06-23"),
+      size: 3150000,
+      createdAt: new Date("2022-11-05"),
+      modifiedAt: new Date("2022-11-05"),
       path: ["IT Research"],
       tags: [
-        { id: "tag-nosql", name: "NoSQL", color: "purple" },
-        { id: "tag-database", name: "Databases", color: "orange" }
-      ],
-      content: "Sample PDF content for NoSQL database research paper.",
-      authors: "Kevin Anderson, Michelle Park",
-      abstract: "This research analyzes the architectural features of emerging NoSQL database systems. The paper compares different approaches to non-relational data storage, evaluates performance characteristics, and identifies appropriate use cases for document, column, and graph databases.",
-      publicationYear: "2009",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2010",
-      name: "Mobile Application Development Frameworks: Analysis and Comparison.pdf",
-      type: "pdf" as FileType,
-      size: 3890000,
-      createdAt: new Date("2010-05-08"),
-      modifiedAt: new Date("2010-05-08"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-mobile", name: "Mobile Development", color: "red" },
-        { id: "tag-frameworks", name: "Frameworks", color: "yellow" }
-      ],
-      content: "Sample PDF content for mobile frameworks research paper.",
-      authors: "Steven Harris, Natalie Chen",
-      abstract: "This paper evaluates development frameworks for mobile application creation as smartphones gain mainstream adoption. The research compares native, web-based, and hybrid approaches, measuring performance, feature accessibility, and developer productivity across platforms.",
-      publicationYear: "2010",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2011",
-      name: "Big Data Processing Techniques: MapReduce and Alternatives.pdf",
-      type: "pdf" as FileType,
-      size: 4750000,
-      createdAt: new Date("2011-09-12"),
-      modifiedAt: new Date("2011-09-12"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-bigdata", name: "Big Data", color: "blue" },
-        { id: "tag-mapreduce", name: "MapReduce", color: "green" }
-      ],
-      content: "Sample PDF content for big data processing research paper.",
-      authors: "Jonathan Miller, Amanda Wong",
-      abstract: "This research examines distributed processing frameworks for large-scale data analysis. The paper evaluates MapReduce implementations, emerging stream processing alternatives, and specialized graph processing frameworks for handling petabyte-scale datasets.",
-      publicationYear: "2011",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2012",
-      name: "DevOps Practices: Integration of Development and Operations.pdf",
-      type: "pdf" as FileType,
-      size: 3450000,
-      createdAt: new Date("2012-03-25"),
-      modifiedAt: new Date("2012-03-25"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-devops", name: "DevOps", color: "purple" },
-        { id: "tag-cicd", name: "CI/CD", color: "orange" }
-      ],
-      content: "Sample PDF content for DevOps practices research paper.",
-      authors: "Brian Thompson, Rebecca Liu",
-      abstract: "This paper investigates the emerging DevOps methodology for software delivery. The research examines how continuous integration, automated testing, and infrastructure-as-code practices can reduce deployment cycles while maintaining system reliability and security.",
-      publicationYear: "2012",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2013",
-      name: "Software-Defined Networking: Architecture and Applications.pdf",
-      type: "pdf" as FileType,
-      size: 4230000,
-      createdAt: new Date("2013-07-17"),
-      modifiedAt: new Date("2013-07-17"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-sdn", name: "SDN", color: "yellow" },
-        { id: "tag-networks", name: "Networks", color: "blue" }
-      ],
-      content: "Sample PDF content for SDN research paper.",
-      authors: "Michael Roberts, Julia Kim",
-      abstract: "This research examines software-defined networking architectures and their impact on network management. The paper analyzes control plane separation, programmability advantages, and implementation challenges in enterprise and data center environments.",
-      publicationYear: "2013",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2014",
-      name: "Internet of Things: Protocols and Security Considerations.pdf",
-      type: "pdf" as FileType,
-      size: 3980000,
-      createdAt: new Date("2014-11-03"),
-      modifiedAt: new Date("2014-11-03"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-iot", name: "IoT", color: "green" },
+        { id: "tag-quantum", name: "Quantum Computing", color: "purple" },
         { id: "tag-security", name: "Security", color: "red" }
       ],
-      content: "Sample PDF content for IoT research paper.",
-      authors: "Christopher Davis, Sophia Martinez",
-      abstract: "This paper evaluates communication protocols and security challenges in Internet of Things deployments. The research compares lightweight networking protocols, analyzes attack vectors specific to constrained devices, and proposes security frameworks for IoT ecosystems.",
-      publicationYear: "2014",
-      isResearchPaper: true,
-      isDownloadable: false
+      content: "Analysis of quantum computing's impact on modern cryptographic systems.",
+      publicationYear: 2022,
+      authors: ["Prof. James Wilson", "Dr. Elena Nakamoto"],
+      abstract: "This research explores the implications of quantum computing advancements on contemporary cryptographic systems. We assess the vulnerability of widely used encryption algorithms to quantum attacks and propose quantum-resistant alternatives based on lattice-based cryptography and multivariate polynomial systems.",
+      downloadable: false
     },
     {
-      id: "research-2015",
-      name: "Container Orchestration Systems: Analysis and Performance.pdf",
-      type: "pdf" as FileType,
-      size: 4120000,
-      createdAt: new Date("2015-08-21"),
-      modifiedAt: new Date("2015-08-21"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-containers", name: "Containers", color: "blue" },
-        { id: "tag-orchestration", name: "Orchestration", color: "purple" }
-      ],
-      content: "Sample PDF content for container orchestration research paper.",
-      authors: "David Wilson, Jessica Lee",
-      abstract: "This research examines container orchestration platforms for microservice deployment and management. The paper compares scheduling algorithms, service discovery mechanisms, and network models across leading container orchestration systems.",
-      publicationYear: "2015",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2016",
-      name: "Blockchain Technology: Beyond Cryptocurrencies.pdf",
-      type: "pdf" as FileType,
-      size: 3870000,
-      createdAt: new Date("2016-04-09"),
-      modifiedAt: new Date("2016-04-09"),
-      path: ["IT Research"],
-      tags: [
-        { id: "tag-blockchain", name: "Blockchain", color: "orange" },
-        { id: "tag-distributed", name: "Distributed Systems", color: "yellow" }
-      ],
-      content: "Sample PDF content for blockchain technology research paper.",
-      authors: "Andrew Jackson, Olivia Chen",
-      abstract: "This paper investigates applications of blockchain technology beyond cryptocurrency implementations. The research evaluates consensus mechanisms, smart contract platforms, and enterprise blockchain frameworks for supply chain, identity, and record management use cases.",
-      publicationYear: "2016",
-      isResearchPaper: true,
-      isDownloadable: false
-    },
-    {
-      id: "research-2017",
+      id: "it-research-3",
       name: "Machine Learning for Network Intrusion Detection.pdf",
       type: "pdf" as FileType,
-      size: 4560000,
-      createdAt: new Date("2017-09-30"),
-      modifiedAt: new Date("2017-09-30"),
+      size: 2870000,
+      createdAt: new Date("2021-08-22"),
+      modifiedAt: new Date("2021-08-22"),
       path: ["IT Research"],
       tags: [
         { id: "tag-ml", name: "Machine Learning", color: "green" },
         { id: "tag-security", name: "Security", color: "red" }
       ],
-      content: "Sample PDF content for machine learning security research paper.",
-      authors: "Robert Chen, Elizabeth Parker",
-      abstract: "This research examines the application of machine learning techniques to network intrusion detection systems. The paper evaluates supervised and unsupervised approaches for anomaly detection, comparing their effectiveness against signature-based methods for identifying novel attack patterns.",
-      publicationYear: "2017",
-      isResearchPaper: true,
-      isDownloadable: false
+      content: "Evaluation of machine learning techniques for network security.",
+      publicationYear: 2021,
+      authors: ["Dr. Michael Thompson", "Dr. Lisa Zhang", "Prof. Karen Davis"],
+      abstract: "This study evaluates the effectiveness of various machine learning algorithms for network intrusion detection. We compare traditional signature-based methods with supervised and unsupervised learning approaches, testing against contemporary attack vectors and zero-day exploits. Our results demonstrate significant improvements in detection rates while reducing false positives.",
+      downloadable: false
     },
     {
-      id: "research-2018",
-      name: "Serverless Computing: Architecture and Performance Analysis.pdf",
+      id: "it-research-4",
+      name: "Blockchain Technology for Supply Chain Management.pdf",
       type: "pdf" as FileType,
-      size: 3980000,
-      createdAt: new Date("2018-05-14"),
-      modifiedAt: new Date("2018-05-14"),
+      size: 2450000,
+      createdAt: new Date("2020-05-17"),
+      modifiedAt: new Date("2020-05-17"),
       path: ["IT Research"],
       tags: [
-        { id: "tag-serverless", name: "Serverless", color: "blue" },
-        { id: "tag-cloud", name: "Cloud Computing", color: "purple" }
+        { id: "tag-blockchain", name: "Blockchain", color: "orange" },
+        { id: "tag-logistics", name: "Logistics", color: "blue" }
       ],
-      content: "Sample PDF content for serverless computing research paper.",
-      authors: "Thomas Wright, Sophia Johnson",
-      abstract: "This paper analyzes serverless computing platforms and their performance characteristics. The research measures cold start latencies, throughput limitations, and cost models across major cloud providers, identifying optimal workloads for function-as-a-service deployments.",
-      publicationYear: "2018",
-      isResearchPaper: true,
-      isDownloadable: false
+      content: "Implementation strategies for blockchain in supply chain systems.",
+      publicationYear: 2020,
+      authors: ["Prof. Andrew Kim", "Dr. Rachel Johnson"],
+      abstract: "This paper presents a comprehensive framework for implementing blockchain technology in supply chain management systems. We analyze the challenges of existing supply chain information systems and demonstrate how distributed ledger technology addresses issues of transparency, traceability, and trust. Case studies from multiple industries validate our proposed implementation methodology.",
+      downloadable: false
     },
     {
-      id: "research-2019",
-      name: "Edge Computing for IoT: Architectures and Implementations.pdf",
+      id: "it-research-5",
+      name: "Internet of Things Security Challenges.pdf",
       type: "pdf" as FileType,
-      size: 4230000,
-      createdAt: new Date("2019-10-22"),
-      modifiedAt: new Date("2019-10-22"),
+      size: 2180000,
+      createdAt: new Date("2019-03-08"),
+      modifiedAt: new Date("2019-03-08"),
       path: ["IT Research"],
       tags: [
-        { id: "tag-edge", name: "Edge Computing", color: "yellow" },
-        { id: "tag-iot", name: "IoT", color: "orange" }
+        { id: "tag-iot", name: "Internet of Things", color: "green" },
+        { id: "tag-security", name: "Security", color: "red" }
       ],
-      content: "Sample PDF content for edge computing research paper.",
-      authors: "Jennifer Adams, Michael Chang",
-      abstract: "This research explores edge computing architectures for Internet of Things applications. The paper evaluates latency reduction, bandwidth conservation, and privacy advantages of processing data closer to IoT devices while maintaining cloud integration for analytics and storage.",
-      publicationYear: "2019",
-      isResearchPaper: true,
-      isDownloadable: false
+      content: "Analysis of security vulnerabilities in IoT ecosystems.",
+      publicationYear: 2019,
+      authors: ["Dr. Thomas Rivera", "Prof. Samantha Lee"],
+      abstract: "This research identifies and categorizes security vulnerabilities in IoT ecosystems across consumer, industrial, and healthcare domains. We propose a multi-layered security framework addressing device-level, communication-level, and cloud-level vulnerabilities. Our experimental results validate the framework's effectiveness against common attack vectors targeting IoT deployments.",
+      downloadable: false
     },
     {
-      id: "research-2020",
-      name: "Quantum Computing Applications in Cryptography.pdf",
+      id: "it-research-6",
+      name: "Big Data Analytics in Healthcare.pdf",
       type: "pdf" as FileType,
-      size: 4780000,
-      createdAt: new Date("2020-07-15"),
-      modifiedAt: new Date("2020-07-15"),
+      size: 3050000,
+      createdAt: new Date("2018-09-12"),
+      modifiedAt: new Date("2018-09-12"),
       path: ["IT Research"],
       tags: [
-        { id: "tag-quantum", name: "Quantum Computing", color: "purple" },
-        { id: "tag-cryptography", name: "Cryptography", color: "red" }
+        { id: "tag-bigdata", name: "Big Data", color: "blue" },
+        { id: "tag-healthcare", name: "Healthcare", color: "green" }
       ],
-      content: "Sample PDF content for quantum computing research paper.",
-      authors: "Daniel Roberts, Sarah Thompson",
-      abstract: "This paper investigates the implications of quantum computing advances for modern cryptographic systems. The research evaluates quantum algorithms that threaten current encryption methods and analyzes post-quantum cryptographic approaches designed to withstand quantum attacks.",
-      publicationYear: "2020",
-      isResearchPaper: true,
-      isDownloadable: false
+      content: "Applications of big data analytics in improving healthcare outcomes.",
+      publicationYear: 2018,
+      authors: ["Dr. Emily Rodriguez", "Prof. David Chan", "Dr. Sarah Park"],
+      abstract: "This study explores the applications of big data analytics in healthcare systems, focusing on predictive diagnostics, personalized treatment recommendations, and resource optimization. We demonstrate how machine learning algorithms applied to electronic health records can identify patterns and correlations that improve patient outcomes while reducing costs.",
+      downloadable: false
+    },
+    {
+      id: "it-research-7",
+      name: "Virtualization Technologies: A Comparative Analysis.pdf",
+      type: "pdf" as FileType,
+      size: 1980000,
+      createdAt: new Date("2015-11-27"),
+      modifiedAt: new Date("2015-11-27"),
+      path: ["IT Research"],
+      tags: [
+        { id: "tag-virtualization", name: "Virtualization", color: "purple" },
+        { id: "tag-performance", name: "Performance", color: "orange" }
+      ],
+      content: "Comparison of hypervisor-based and container-based virtualization technologies.",
+      publicationYear: 2015,
+      authors: ["Prof. Richard Brown", "Dr. Jennifer Martinez"],
+      abstract: "This paper provides a comparative analysis of hypervisor-based and container-based virtualization technologies, evaluating them across dimensions of performance, security isolation, resource efficiency, and management complexity. We present benchmark results from extensive testing across various workloads and provide recommendations for enterprise deployment scenarios.",
+      downloadable: false
+    },
+    {
+      id: "it-research-8",
+      name: "Software Defined Networking: Principles and Applications.pdf",
+      type: "pdf" as FileType,
+      size: 2340000,
+      createdAt: new Date("2013-07-19"),
+      modifiedAt: new Date("2013-07-19"),
+      path: ["IT Research"],
+      tags: [
+        { id: "tag-networking", name: "Networking", color: "blue" },
+        { id: "tag-sdn", name: "SDN", color: "yellow" }
+      ],
+      content: "Overview of software defined networking architecture and use cases.",
+      publicationYear: 2013,
+      authors: ["Dr. William Taylor", "Prof. Grace Wong"],
+      abstract: "This research presents the architectural principles of Software Defined Networking (SDN) and examines its transformative impact on network infrastructure. We analyze the separation of control and data planes, centralized network intelligence, and programmable network management. Case studies from data centers, telecommunications, and enterprise networks demonstrate SDN's benefits for agility, security, and operational efficiency.",
+      downloadable: false
+    },
+    {
+      id: "it-research-9",
+      name: "Cloud Computing Security: Threats and Mitigations.pdf",
+      type: "pdf" as FileType,
+      size: 2560000,
+      createdAt: new Date("2010-04-30"),
+      modifiedAt: new Date("2010-04-30"),
+      path: ["IT Research"],
+      tags: [
+        { id: "tag-cloud", name: "Cloud Computing", color: "blue" },
+        { id: "tag-security", name: "Security", color: "red" }
+      ],
+      content: "Analysis of security challenges in cloud computing environments.",
+      publicationYear: 2010,
+      authors: ["Prof. Daniel Smith", "Dr. Nancy Chen"],
+      abstract: "This study identifies and categorizes security threats specific to cloud computing environments, including data breaches, account hijacking, insecure APIs, and shared technology vulnerabilities. We propose a comprehensive security framework for cloud deployments, encompassing identity management, encryption, virtualization security, and compliance monitoring across IaaS, PaaS, and SaaS models.",
+      downloadable: false
+    },
+    {
+      id: "it-research-10",
+      name: "Mobile Computing: Challenges and Opportunities.pdf",
+      type: "pdf" as FileType,
+      size: 1870000,
+      createdAt: new Date("2008-10-15"),
+      modifiedAt: new Date("2008-10-15"),
+      path: ["IT Research"],
+      tags: [
+        { id: "tag-mobile", name: "Mobile Computing", color: "green" },
+        { id: "tag-wireless", name: "Wireless", color: "yellow" }
+      ],
+      content: "Review of mobile computing technologies and future directions.",
+      publicationYear: 2008,
+      authors: ["Dr. Robert Johnson", "Prof. Maria Garcia"],
+      abstract: "This paper examines the evolution of mobile computing technologies and their impact on business processes and consumer behaviors. We analyze challenges related to power consumption, connectivity, security, and user experience in mobile environments. The research also identifies emerging opportunities in location-based services, augmented reality, and wearable computing.",
+      downloadable: false
+    },
+    {
+      id: "it-research-11",
+      name: "Web Services Architecture and Standards.pdf",
+      type: "pdf" as FileType,
+      size: 1680000,
+      createdAt: new Date("2005-06-22"),
+      modifiedAt: new Date("2005-06-22"),
+      path: ["IT Research"],
+      tags: [
+        { id: "tag-webservices", name: "Web Services", color: "blue" },
+        { id: "tag-soa", name: "SOA", color: "purple" }
+      ],
+      content: "Overview of web services technologies and implementation standards.",
+      publicationYear: 2005,
+      authors: ["Prof. Christopher Wilson", "Dr. Elizabeth Taylor"],
+      abstract: "This research provides a comprehensive analysis of web services architectures and standards, including SOAP, REST, WSDL, and UDDI. We compare document-centric and RPC-style web services, evaluating their suitability for various integration scenarios. The paper also addresses interoperability challenges and best practices for enterprise service-oriented architecture implementations.",
+      downloadable: false
+    },
+    {
+      id: "it-research-12",
+      name: "Network Security: Intrusion Detection Systems.pdf",
+      type: "pdf" as FileType,
+      size: 1920000,
+      createdAt: new Date("2003-03-18"),
+      modifiedAt: new Date("2003-03-18"),
+      path: ["IT Research"],
+      tags: [
+        { id: "tag-security", name: "Security", color: "red" },
+        { id: "tag-networking", name: "Networking", color: "blue" }
+      ],
+      content: "Evaluation of intrusion detection technologies for enterprise networks.",
+      publicationYear: 2003,
+      authors: ["Dr. Michael Adams", "Prof. Susan Roberts"],
+      abstract: "This study evaluates different approaches to network intrusion detection, including signature-based, anomaly-based, and hybrid systems. We analyze the effectiveness of these approaches against various attack vectors such as DoS attacks, buffer overflows, port scans, and malware. The research includes a framework for IDS deployment and tuning to minimize false positives while maximizing detection capabilities.",
+      downloadable: false
+    },
+    {
+      id: "it-research-13",
+      name: "Database Systems: OLAP and Data Mining Applications.pdf",
+      type: "pdf" as FileType,
+      size: 2150000,
+      createdAt: new Date("2000-09-28"),
+      modifiedAt: new Date("2000-09-28"),
+      path: ["IT Research"],
+      tags: [
+        { id: "tag-database", name: "Database", color: "orange" },
+        { id: "tag-datamining", name: "Data Mining", color: "green" }
+      ],
+      content: "Analysis of online analytical processing and data mining techniques.",
+      publicationYear: 2000,
+      authors: ["Prof. Jonathan Turner", "Dr. Patricia White"],
+      abstract: "This research examines the integration of Online Analytical Processing (OLAP) with data mining techniques to enhance business intelligence capabilities. We analyze multidimensional data modeling, ETL processes, and various data mining algorithms including clustering, association rule mining, and predictive analytics. Case studies demonstrate how these technologies enable enhanced decision support across multiple industries.",
+      downloadable: false
     }
   ];
   
@@ -859,8 +670,5 @@ export const addSampleFiles = (): void => {
     
     // Add sample files to storage
     sampleFiles.forEach(file => saveFile(file));
-    
-    // Add research papers
-    researchPapers.forEach(paper => saveFile(paper));
   }
 };

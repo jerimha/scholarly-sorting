@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, Clock, Download, FileText, ImageIcon, Save, Star, StarOff, XIcon, AlertCircle } from "lucide-react";
+import { CalendarIcon, Clock, Download, FileText, ImageIcon, Info, Lock, Save, Star, StarOff, XIcon } from "lucide-react";
 import { saveFileContent } from "@/lib/storage";
 import { toast } from "sonner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface FilePreviewProps {
   file: FileType;
@@ -40,8 +39,9 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
   };
 
   const handleDownload = () => {
-    if (file.isDownloadable === false) {
-      toast.error("This document cannot be downloaded");
+    // Check if file is downloadable
+    if (file.downloadable === false) {
+      toast.error("This research document is protected and cannot be downloaded");
       return;
     }
     
@@ -89,7 +89,7 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
       document.body.removeChild(downloadLink);
       
       // Clean up the object URL to avoid memory leaks
-      if (!file.type === 'image' || !file.content?.startsWith('data:')) {
+      if (!(file.type === 'image') || !(file.content?.startsWith('data:'))) {
         URL.revokeObjectURL(dataUrl);
       }
       
@@ -100,8 +100,8 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
     }
   };
   
-  const isResearchPaper = file.isResearchPaper;
-  const isPdfOnly = file.type === 'pdf' && (isResearchPaper || file.isDownloadable === false);
+  const isTextFile = ['txt', 'docx', 'pdf'].includes(file.type);
+  const isPdfResearch = file.publicationYear && file.type === 'pdf';
   
   return (
     <div className="flex flex-col h-full">
@@ -142,13 +142,8 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
               <h3 className="font-medium">{file.name}</h3>
               <p className="text-sm text-muted-foreground">
                 {file.size && formatFileSize(file.size)}
-                {isResearchPaper && file.publicationYear && ` • ${file.publicationYear}`}
+                {file.publicationYear && ` • Published: ${file.publicationYear}`}
               </p>
-              {isResearchPaper && file.authors && (
-                <p className="text-sm mt-1">
-                  {file.authors}
-                </p>
-              )}
             </div>
           </div>
           
@@ -172,14 +167,14 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
               </div>
             </div>
           </div>
+          
+          {file.authors && file.authors.length > 0 && (
+            <div className="mt-3">
+              <p className="text-sm text-muted-foreground">Authors</p>
+              <p className="text-sm mt-1">{file.authors.join(", ")}</p>
+            </div>
+          )}
         </div>
-        
-        {isResearchPaper && file.abstract && (
-          <div>
-            <h3 className="text-sm font-medium mb-2">Abstract</h3>
-            <p className="text-sm bg-muted p-3 rounded">{file.abstract}</p>
-          </div>
-        )}
         
         {file.tags.length > 0 && (
           <div>
@@ -201,72 +196,85 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
           </div>
         )}
         
-        {isPdfOnly ? (
+        {file.abstract && (
+          <div>
+            <h3 className="text-sm font-medium mb-1">Abstract</h3>
+            <div className="bg-muted p-3 rounded">
+              <p className="text-sm">{file.abstract}</p>
+            </div>
+          </div>
+        )}
+        
+        {isPdfResearch && (
+          <div className="border rounded-md p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium">PDF Preview</h3>
+              {file.downloadable === false && (
+                <div className="flex items-center text-amber-600">
+                  <Lock size={14} className="mr-1" />
+                  <span className="text-xs">Protected content</span>
+                </div>
+              )}
+            </div>
+            <div className="bg-muted p-3 rounded min-h-[300px] flex items-center justify-center">
+              {file.content ? (
+                <iframe 
+                  src={file.content.startsWith('data:') ? file.content : `data:application/pdf;base64,${btoa(file.content)}`}
+                  className="w-full h-[400px] border-0"
+                  title={`${file.name} preview`}
+                ></iframe>
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  <FileText size={36} className="mx-auto mb-2" />
+                  <p>PDF preview not available</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {isTextFile && !isPdfResearch && (
           <>
             <Separator />
+            
             <div>
-              <h3 className="text-sm font-medium mb-2">PDF Preview</h3>
-              <div className="bg-muted p-6 rounded min-h-[300px] flex flex-col items-center justify-center text-center">
-                <FileText size={48} className="text-muted-foreground mb-4" />
-                <p className="font-medium">PDF Document</p>
-                <p className="text-sm text-muted-foreground mt-1">This document can only be viewed as a PDF</p>
-                {file.isDownloadable === false && (
-                  <Alert className="mt-4 bg-amber-50">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      This document is protected and cannot be downloaded
-                    </AlertDescription>
-                  </Alert>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium">Content</h3>
+                {isEditing ? (
+                  <Button size="sm" onClick={handleSaveContent}>
+                    <Save size={14} className="mr-1" />
+                    Save
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+                    Edit
+                  </Button>
                 )}
               </div>
+              
+              {isEditing ? (
+                <Textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="min-h-[200px]"
+                />
+              ) : (
+                <div className="bg-muted p-3 rounded min-h-[200px] whitespace-pre-wrap">
+                  {content || <span className="text-muted-foreground italic">No content</span>}
+                </div>
+              )}
             </div>
           </>
-        ) : (
-          <>
-            {file.type !== 'image' && (
-              <>
-                <Separator />
-                
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-medium">Content</h3>
-                    {isEditing ? (
-                      <Button size="sm" onClick={handleSaveContent}>
-                        <Save size={14} className="mr-1" />
-                        Save
-                      </Button>
-                    ) : (
-                      <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
-                        Edit
-                      </Button>
-                    )}
-                  </div>
-                  
-                  {isEditing ? (
-                    <Textarea
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      className="min-h-[200px]"
-                    />
-                  ) : (
-                    <div className="bg-muted p-3 rounded min-h-[200px] whitespace-pre-wrap">
-                      {content || <span className="text-muted-foreground italic">No content</span>}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-            
-            {file.type === 'image' && file.content && (
-              <div className="border rounded-lg overflow-hidden">
-                <img 
-                  src={file.content} 
-                  alt={file.name}
-                  className="w-full h-auto"
-                />
-              </div>
-            )}
-          </>
+        )}
+        
+        {file.type === 'image' && file.content && (
+          <div className="border rounded-lg overflow-hidden">
+            <img 
+              src={file.content} 
+              alt={file.name}
+              className="w-full h-auto"
+            />
+          </div>
         )}
         
         <Separator />
@@ -295,10 +303,19 @@ const FilePreview = ({ file, onClose }: FilePreviewProps) => {
         <Button 
           className="w-full" 
           onClick={handleDownload}
-          disabled={file.isDownloadable === false}
+          disabled={file.downloadable === false}
         >
-          <Download size={16} className="mr-2" />
-          {file.isDownloadable === false ? "Protected Document" : "Download"}
+          {file.downloadable === false ? (
+            <>
+              <Lock size={16} className="mr-2" />
+              Protected Document
+            </>
+          ) : (
+            <>
+              <Download size={16} className="mr-2" />
+              Download
+            </>
+          )}
         </Button>
       </div>
     </div>

@@ -1,11 +1,10 @@
 
 import { sampleTags } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { AlignJustify, BookOpen, ChevronDown, Clock, FileText, FolderOpen, Home, Search, Settings, Star, Tag, X } from "lucide-react";
+import { AlignJustify, ChevronDown, Clock, FileText, FolderOpen, Home, Search, Settings, Star, Tag, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import LogoutButton from "./LogoutButton";
-import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
   activeTab: string;
@@ -15,7 +14,6 @@ interface SidebarProps {
 const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [tagsExpanded, setTagsExpanded] = useState(true);
-  const navigate = useNavigate();
   
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
@@ -67,14 +65,6 @@ const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
             active={activeTab === "search"}
             collapsed={collapsed}
             onClick={() => onTabChange("search")}
-          />
-          
-          <SidebarItem 
-            icon={<BookOpen size={20} />}
-            label="Research Papers"
-            active={activeTab === "research"}
-            collapsed={collapsed}
-            onClick={() => navigate("/research")}
           />
           
           <div className="py-2">
