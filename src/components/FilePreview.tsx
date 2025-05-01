@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { File as FileType } from "@/types";
 import { formatFileSize } from "@/lib/data";
