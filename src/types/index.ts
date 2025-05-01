@@ -20,6 +20,10 @@ export interface File {
   notes?: string;
   starred?: boolean;
   deletedAt?: Date; // Added for trash functionality
+  publicationYear?: number; // Added for research document year filtering
+  authors?: string[]; // Added for research document authors
+  abstract?: string; // Added for research paper abstract
+  downloadable?: boolean; // Added to control if file can be downloaded
 }
 
 export interface Folder {
