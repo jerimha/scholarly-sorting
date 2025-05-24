@@ -33,18 +33,20 @@ const PublicSearch = () => {
     const files = getAllFilesFromStorage();
     console.log("All files from storage:", files);
     
-    // Filter only research documents and files with publication years
-    const researchFiles = files.filter(file => {
-      const isResearchFile = file.publicationYear && file.type === 'pdf';
-      console.log(`File ${file.name}: publicationYear=${file.publicationYear}, type=${file.type}, isResearch=${isResearchFile}`);
-      return isResearchFile;
+    // Filter documents - show all PDFs and research documents
+    const searchableFiles = files.filter(file => {
+      const isPdfFile = file.type === 'pdf';
+      const hasResearchData = file.publicationYear || file.authors || file.abstract;
+      const isSearchableFile = isPdfFile || hasResearchData;
+      console.log(`File ${file.name}: type=${file.type}, hasResearchData=${hasResearchData}, isSearchable=${isSearchableFile}`);
+      return isSearchableFile;
     });
     
-    console.log("Filtered research files:", researchFiles);
-    setAllFiles(researchFiles);
+    console.log("Filtered searchable files:", searchableFiles);
+    setAllFiles(searchableFiles);
     
-    // Show all research files initially
-    setResults(researchFiles);
+    // Show all searchable files initially
+    setResults(searchableFiles);
   }, []);
 
   const handleSearch = () => {
@@ -58,8 +60,9 @@ const PublicSearch = () => {
         const matchesTags = file.tags.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase()));
         const matchesAbstract = file.abstract && file.abstract.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesAuthors = file.authors && file.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchesNotes = file.notes && file.notes.toLowerCase().includes(searchQuery.toLowerCase());
         
-        return matchesName || matchesTags || matchesAbstract || matchesAuthors;
+        return matchesName || matchesTags || matchesAbstract || matchesAuthors || matchesNotes;
       });
     }
     
@@ -80,10 +83,11 @@ const PublicSearch = () => {
 
   // Auto-search when query changes
   useEffect(() => {
-    if (searchQuery === "") {
-      // Show all files when search is empty
+    const timeoutId = setTimeout(() => {
       handleSearch();
-    }
+    }, 300); // Debounce search
+    
+    return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
   return (
@@ -105,12 +109,12 @@ const PublicSearch = () => {
 
       <main className="flex-1 p-6 container mx-auto max-w-5xl">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold mb-2">IT Research Documents 2000-2025</h2>
+          <h2 className="text-2xl font-bold mb-2">Document Repository 2000-2025</h2>
           <p className="text-muted-foreground">
-            Browse our collection of IT research papers from the past 25 years. Login required to download content.
+            Browse our collection of documents and research papers. Login required to download content.
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            Found {allFiles.length} research documents
+            Found {allFiles.length} searchable documents
           </p>
         </div>
 
@@ -119,7 +123,7 @@ const PublicSearch = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Search by title, author, or keywords..."
+                placeholder="Search by title, author, keywords, or notes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSearch()}
@@ -147,7 +151,7 @@ const PublicSearch = () => {
 
           {results.length > 0 ? (
             <div className="space-y-4">
-              <h3 className="font-medium">{results.length} research papers found</h3>
+              <h3 className="font-medium">{results.length} documents found</h3>
               <div className="divide-y">
                 {results.map((file) => (
                   <div 
@@ -167,12 +171,19 @@ const PublicSearch = () => {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {file.authors && `Authors: ${file.authors.join(", ")}`}
-                        </p>
+                        {file.authors && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Authors: {file.authors.join(", ")}
+                          </p>
+                        )}
                         {file.abstract && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {file.abstract}
+                          </p>
+                        )}
+                        {file.notes && !file.abstract && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {file.notes}
                           </p>
                         )}
                         <div className="flex flex-wrap gap-2 mt-2">
@@ -211,14 +222,14 @@ const PublicSearch = () => {
               {(searchQuery || yearFilter !== "all") ? (
                 <div>
                   <Info className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-lg font-medium">No research papers found</p>
+                  <p className="text-lg font-medium">No documents found</p>
                   <p className="text-muted-foreground mt-1">Try adjusting your search criteria or year filter</p>
                 </div>
               ) : (
                 <div>
                   <Filter className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-lg font-medium">Browse IT Research Papers</p>
-                  <p className="text-muted-foreground mt-1">Use the search or filter by year to find research documents</p>
+                  <p className="text-lg font-medium">Browse Documents</p>
+                  <p className="text-muted-foreground mt-1">Use the search or filter by year to find documents</p>
                 </div>
               )}
             </div>
@@ -274,7 +285,7 @@ const PublicSearch = () => {
                 <div className="w-full h-full flex items-center justify-center bg-muted">
                   <div className="text-center">
                     <FileText size={48} className="mx-auto mb-3 text-muted-foreground" />
-                    <p className="font-medium">PDF preview not available</p>
+                    <p className="font-medium">Preview not available</p>
                     <p className="text-muted-foreground text-sm mt-1">Login for full access</p>
                   </div>
                 </div>
