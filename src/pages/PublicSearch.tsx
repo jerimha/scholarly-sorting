@@ -33,13 +33,19 @@ const PublicSearch = () => {
     const files = getAllFilesFromStorage();
     console.log("All files from storage:", files);
     
-    // Filter documents - show all PDFs and research documents
+    // Include ALL files - remove the restrictive filtering
+    // Show all files that have content or are documents
     const searchableFiles = files.filter(file => {
-      const isPdfFile = file.type === 'pdf';
-      const hasResearchData = file.publicationYear || file.authors || file.abstract;
-      const isSearchableFile = isPdfFile || hasResearchData;
-      console.log(`File ${file.name}: type=${file.type}, hasResearchData=${hasResearchData}, isSearchable=${isSearchableFile}`);
-      return isSearchableFile;
+      // Include all files - PDFs, documents, text files, and any file with content
+      const hasContent = file.content && file.content.length > 0;
+      const isDocument = ['pdf', 'docx', 'txt'].includes(file.type);
+      const hasMetadata = file.publicationYear || file.authors || file.abstract || file.notes;
+      
+      // Include file if it's a document type, has content, or has metadata
+      const shouldInclude = isDocument || hasContent || hasMetadata;
+      
+      console.log(`File ${file.name}: type=${file.type}, hasContent=${hasContent}, hasMetadata=${hasMetadata}, shouldInclude=${shouldInclude}`);
+      return shouldInclude;
     });
     
     console.log("Filtered searchable files:", searchableFiles);
@@ -55,14 +61,16 @@ const PublicSearch = () => {
     
     // Apply search query filter
     if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
       filteredFiles = filteredFiles.filter(file => {
-        const matchesName = file.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesTags = file.tags.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase()));
-        const matchesAbstract = file.abstract && file.abstract.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesAuthors = file.authors && file.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase()));
-        const matchesNotes = file.notes && file.notes.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesName = file.name.toLowerCase().includes(query);
+        const matchesTags = file.tags.some(tag => tag.name.toLowerCase().includes(query));
+        const matchesAbstract = file.abstract && file.abstract.toLowerCase().includes(query);
+        const matchesAuthors = file.authors && file.authors.some(author => author.toLowerCase().includes(query));
+        const matchesNotes = file.notes && file.notes.toLowerCase().includes(query);
+        const matchesContent = file.content && file.content.toLowerCase().includes(query);
         
-        return matchesName || matchesTags || matchesAbstract || matchesAuthors || matchesNotes;
+        return matchesName || matchesTags || matchesAbstract || matchesAuthors || matchesNotes || matchesContent;
       });
     }
     
@@ -89,6 +97,26 @@ const PublicSearch = () => {
     
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
+
+  // Re-load files when component becomes visible (to catch new uploads)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log("Page became visible, reloading files...");
+        const files = getAllFilesFromStorage();
+        const searchableFiles = files.filter(file => {
+          const hasContent = file.content && file.content.length > 0;
+          const isDocument = ['pdf', 'docx', 'txt'].includes(file.type);
+          const hasMetadata = file.publicationYear || file.authors || file.abstract || file.notes;
+          return isDocument || hasContent || hasMetadata;
+        });
+        setAllFiles(searchableFiles);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -123,7 +151,7 @@ const PublicSearch = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Search by title, author, keywords, or notes..."
+                placeholder="Search by title, author, keywords, content, or notes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSearch()}
