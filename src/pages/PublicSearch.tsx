@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, FileText, Shield, Calendar, Lock, Filter, Info } from "lucide-react";
 import { formatFileSize } from "@/lib/data";
 import { File } from "@/types";
-import { getAllFilesFromStorage } from "@/lib/storage";
+import { getAllFilesFromStorage, addSampleFiles } from "@/lib/storage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -26,25 +25,42 @@ const PublicSearch = () => {
 
   // Load all files from localStorage on component mount
   useEffect(() => {
+    console.log("Loading files from storage...");
+    
+    // Ensure sample files are added
+    addSampleFiles();
+    
     const files = getAllFilesFromStorage();
+    console.log("All files from storage:", files);
     
-    // Filter only research documents
-    const researchFiles = files.filter(file => file.publicationYear && file.type === 'pdf');
+    // Filter only research documents and files with publication years
+    const researchFiles = files.filter(file => {
+      const isResearchFile = file.publicationYear && file.type === 'pdf';
+      console.log(`File ${file.name}: publicationYear=${file.publicationYear}, type=${file.type}, isResearch=${isResearchFile}`);
+      return isResearchFile;
+    });
     
+    console.log("Filtered research files:", researchFiles);
     setAllFiles(researchFiles);
+    
+    // Show all research files initially
+    setResults(researchFiles);
   }, []);
 
   const handleSearch = () => {
+    console.log("Searching with query:", searchQuery, "and year filter:", yearFilter);
     let filteredFiles = [...allFiles];
     
     // Apply search query filter
     if (searchQuery.trim()) {
-      filteredFiles = filteredFiles.filter(file => 
-        file.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        file.tags.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (file.abstract && file.abstract.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (file.authors && file.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase())))
-      );
+      filteredFiles = filteredFiles.filter(file => {
+        const matchesName = file.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesTags = file.tags.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchesAbstract = file.abstract && file.abstract.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesAuthors = file.authors && file.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        return matchesName || matchesTags || matchesAbstract || matchesAuthors;
+      });
     }
     
     // Apply year filter
@@ -53,13 +69,22 @@ const PublicSearch = () => {
       filteredFiles = filteredFiles.filter(file => file.publicationYear === year);
     }
     
+    console.log("Search results:", filteredFiles);
     setResults(filteredFiles);
   };
   
   // Filter files whenever year filter changes
   useEffect(() => {
     handleSearch();
-  }, [yearFilter]);
+  }, [yearFilter, allFiles]);
+
+  // Auto-search when query changes
+  useEffect(() => {
+    if (searchQuery === "") {
+      // Show all files when search is empty
+      handleSearch();
+    }
+  }, [searchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -83,6 +108,9 @@ const PublicSearch = () => {
           <h2 className="text-2xl font-bold mb-2">IT Research Documents 2000-2025</h2>
           <p className="text-muted-foreground">
             Browse our collection of IT research papers from the past 25 years. Login required to download content.
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Found {allFiles.length} research documents
           </p>
         </div>
 
