@@ -15,17 +15,15 @@ interface FileMoverProps {
   onMoved: () => void;
 }
 
-const ROOT_VALUE = "__ROOT__";
-
 const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
-  const [selectedFolder, setSelectedFolder] = useState<string>(ROOT_VALUE);
+  const [selectedFolder, setSelectedFolder] = useState<string>("");
   const [isMoving, setIsMoving] = useState(false);
-
+  
   const folders = getRootFolders();
   const allFolderPaths = [
-    { value: ROOT_VALUE, label: "Root Folder" },
+    { value: "", label: "Root Folder" },
     ...folders.map(folder => ({ value: folder.name, label: folder.name })),
-    ...folders.flatMap(folder =>
+    ...folders.flatMap(folder => 
       folder.subFolders.map(subFolder => ({
         value: `${folder.name}/${subFolder.name}`,
         label: `${folder.name} / ${subFolder.name}`
@@ -35,26 +33,23 @@ const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
 
   const handleMove = async () => {
     if (!file) return;
-
+    
     setIsMoving(true);
-
+    
     try {
-      let newPath: string[] = [];
-      if (selectedFolder !== ROOT_VALUE) {
-        newPath = selectedFolder.split("/");
-      }
+      const newPath = selectedFolder ? selectedFolder.split('/') : [];
       const updatedFile = {
         ...file,
         path: newPath,
         modifiedAt: new Date()
       };
-
+      
       const success = saveFile(updatedFile);
-
+      
       if (success) {
         onMoved();
         onClose();
-        setSelectedFolder(ROOT_VALUE); // Reset to root on finish
+        setSelectedFolder("");
       }
     } catch (error) {
       console.error("Error moving file:", error);
@@ -63,7 +58,7 @@ const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
     }
   };
 
-  const currentPath = file?.path.length ? file.path.join(" / ") : "Root Folder";
+  const currentPath = file?.path.length ? file.path.join(' / ') : 'Root Folder';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -74,7 +69,7 @@ const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
             Move File
           </DialogTitle>
         </DialogHeader>
-
+        
         {file && (
           <div className="space-y-4">
             <div>
@@ -83,7 +78,7 @@ const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
                 Current location: {currentPath}
               </p>
             </div>
-
+            
             <div className="space-y-2">
               <label className="text-sm font-medium">Move to folder:</label>
               <Select value={selectedFolder} onValueChange={setSelectedFolder}>
@@ -102,13 +97,13 @@ const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
                 </SelectContent>
               </Select>
             </div>
-
+            
             <div className="flex gap-2 pt-4">
               <Button variant="outline" onClick={onClose} className="flex-1">
                 Cancel
               </Button>
-              <Button
-                onClick={handleMove}
+              <Button 
+                onClick={handleMove} 
                 disabled={isMoving}
                 className="flex-1"
               >
@@ -123,4 +118,3 @@ const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
 };
 
 export default FileMover;
-
