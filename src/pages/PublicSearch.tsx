@@ -9,6 +9,16 @@ import { getAllFilesFromStorage, addSampleFiles } from "@/lib/storage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const PublicSearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,6 +26,8 @@ const PublicSearch = () => {
   const [allFiles, setAllFiles] = useState<File[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [yearFilter, setYearFilter] = useState<string>("all");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<File | null>(null);
   const navigate = useNavigate();
   
   const availableYears = Array.from(
@@ -33,18 +45,26 @@ const PublicSearch = () => {
     const files = getAllFilesFromStorage();
     console.log("All files from storage:", files);
     
-    // Filter only research documents and files with publication years
-    const researchFiles = files.filter(file => {
-      const isResearchFile = file.publicationYear && file.type === 'pdf';
-      console.log(`File ${file.name}: publicationYear=${file.publicationYear}, type=${file.type}, isResearch=${isResearchFile}`);
-      return isResearchFile;
+    // Include ALL files - remove the restrictive filtering
+    // Show all files that have content or are documents
+    const searchableFiles = files.filter(file => {
+      // Include all files - PDFs, documents, text files, and any file with content
+      const hasContent = file.content && file.content.length > 0;
+      const isDocument = ['pdf', 'docx', 'txt'].includes(file.type);
+      const hasMetadata = file.publicationYear || file.authors || file.abstract || file.notes;
+      
+      // Include file if it's a document type, has content, or has metadata
+      const shouldInclude = isDocument || hasContent || hasMetadata;
+      
+      console.log(`File ${file.name}: type=${file.type}, hasContent=${hasContent}, hasMetadata=${hasMetadata}, shouldInclude=${shouldInclude}`);
+      return shouldInclude;
     });
     
-    console.log("Filtered research files:", researchFiles);
-    setAllFiles(researchFiles);
+    console.log("Filtered searchable files:", searchableFiles);
+    setAllFiles(searchableFiles);
     
-    // Show all research files initially
-    setResults(researchFiles);
+    // Show all searchable files initially
+    setResults(searchableFiles);
   }, []);
 
   const handleSearch = () => {
@@ -53,13 +73,16 @@ const PublicSearch = () => {
     
     // Apply search query filter
     if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
       filteredFiles = filteredFiles.filter(file => {
-        const matchesName = file.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesTags = file.tags.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase()));
-        const matchesAbstract = file.abstract && file.abstract.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesAuthors = file.authors && file.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchesName = file.name.toLowerCase().includes(query);
+        const matchesTags = file.tags.some(tag => tag.name.toLowerCase().includes(query));
+        const matchesAbstract = file.abstract && file.abstract.toLowerCase().includes(query);
+        const matchesAuthors = file.authors && file.authors.some(author => author.toLowerCase().includes(query));
+        const matchesNotes = file.notes && file.notes.toLowerCase().includes(query);
+        const matchesContent = file.content && file.content.toLowerCase().includes(query);
         
-        return matchesName || matchesTags || matchesAbstract || matchesAuthors;
+        return matchesName || matchesTags || matchesAbstract || matchesAuthors || matchesNotes || matchesContent;
       });
     }
     
@@ -80,11 +103,116 @@ const PublicSearch = () => {
 
   // Auto-search when query changes
   useEffect(() => {
-    if (searchQuery === "") {
-      // Show all files when search is empty
+    const timeoutId = setTimeout(() => {
       handleSearch();
-    }
+    }, 300); // Debounce search
+    
+    return () => clearTimeout(timeoutId);
   }, [searchQuery]);
+
+  // Re-load files when component becomes visible (to catch new uploads)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log("Page became visible, reloading files...");
+        const files = getAllFilesFromStorage();
+        const searchableFiles = files.filter(file => {
+          const hasContent = file.content && file.content.length > 0;
+          const isDocument = ['pdf', 'docx', 'txt'].includes(file.type);
+          const hasMetadata = file.publicationYear || file.authors || file.abstract || file.notes;
+          return isDocument || hasContent || hasMetadata;
+        });
+        setAllFiles(searchableFiles);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  const renderFileContent = (file: File) => {
+    if (!file.content) {
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-muted">
+          <div className="text-center">
+            <FileText size={48} className="mx-auto mb-3 text-muted-foreground" />
+            <p className="font-medium">Content not available</p>
+            <p className="text-muted-foreground text-sm mt-1">Login for full access</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Handle different file types
+    if (file.type === 'txt' || file.type === 'docx') {
+      return (
+        <div className="w-full h-full p-4 bg-white overflow-auto">
+          <div className="whitespace-pre-wrap text-sm">
+            {file.content}
+          </div>
+        </div>
+      );
+    }
+
+    // Handle PDF files safely
+    if (file.type === 'pdf') {
+      try {
+        // Check if content is already a data URL
+        if (file.content.startsWith('data:')) {
+          return (
+            <iframe 
+              src={file.content}
+              className="w-full h-full border-0"
+              title={`${file.name} preview`}
+            />
+          );
+        }
+        
+        // For base64 content, create data URL safely
+        const dataUrl = `data:application/pdf;base64,${file.content}`;
+        return (
+          <iframe 
+            src={dataUrl}
+            className="w-full h-full border-0"
+            title={`${file.name} preview`}
+          />
+        );
+      } catch (error) {
+        console.error("Error rendering PDF:", error);
+        return (
+          <div className="w-full h-full flex items-center justify-center bg-muted">
+            <div className="text-center">
+              <FileText size={48} className="mx-auto mb-3 text-muted-foreground" />
+              <p className="font-medium">PDF preview unavailable</p>
+              <p className="text-muted-foreground text-sm mt-1">Login for full access</p>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    // Handle image files
+    if (file.type === 'image') {
+      return (
+        <img 
+          src={file.content} 
+          alt={file.name}
+          className="w-full h-full object-contain"
+        />
+      );
+    }
+
+    // Fallback for other file types
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-muted">
+        <div className="text-center">
+          <FileText size={48} className="mx-auto mb-3 text-muted-foreground" />
+          <p className="font-medium">Preview not available</p>
+          <p className="text-muted-foreground text-sm mt-1">Login for full access</p>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -105,12 +233,12 @@ const PublicSearch = () => {
 
       <main className="flex-1 p-6 container mx-auto max-w-5xl">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold mb-2">IT Research Documents 2000-2025</h2>
+          <h2 className="text-2xl font-bold mb-2">Document Repository 2000-2025</h2>
           <p className="text-muted-foreground">
-            Browse our collection of IT research papers from the past 25 years. Login required to download content.
+            Browse our collection of documents and research papers. Login required to download content.
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            Found {allFiles.length} research documents
+            Found {allFiles.length} searchable documents
           </p>
         </div>
 
@@ -119,7 +247,7 @@ const PublicSearch = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Search by title, author, or keywords..."
+                placeholder="Search by title, author, keywords, content, or notes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSearch()}
@@ -147,7 +275,7 @@ const PublicSearch = () => {
 
           {results.length > 0 ? (
             <div className="space-y-4">
-              <h3 className="font-medium">{results.length} research papers found</h3>
+              <h3 className="font-medium">{results.length} documents found</h3>
               <div className="divide-y">
                 {results.map((file) => (
                   <div 
@@ -167,12 +295,19 @@ const PublicSearch = () => {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {file.authors && `Authors: ${file.authors.join(", ")}`}
-                        </p>
+                        {file.authors && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Authors: {file.authors.join(", ")}
+                          </p>
+                        )}
                         {file.abstract && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {file.abstract}
+                          </p>
+                        )}
+                        {file.notes && !file.abstract && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {file.notes}
                           </p>
                         )}
                         <div className="flex flex-wrap gap-2 mt-2">
@@ -211,14 +346,14 @@ const PublicSearch = () => {
               {(searchQuery || yearFilter !== "all") ? (
                 <div>
                   <Info className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-lg font-medium">No research papers found</p>
+                  <p className="text-lg font-medium">No documents found</p>
                   <p className="text-muted-foreground mt-1">Try adjusting your search criteria or year filter</p>
                 </div>
               ) : (
                 <div>
                   <Filter className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-lg font-medium">Browse IT Research Papers</p>
-                  <p className="text-muted-foreground mt-1">Use the search or filter by year to find research documents</p>
+                  <p className="text-lg font-medium">Browse Documents</p>
+                  <p className="text-muted-foreground mt-1">Use the search or filter by year to find documents</p>
                 </div>
               )}
             </div>
@@ -227,7 +362,7 @@ const PublicSearch = () => {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(open) => !open && setSelectedFile(null)}>
-        <DialogContent className="max-w-3xl h-[90vh]">
+        <DialogContent className="max-w-4xl h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <div>
@@ -264,21 +399,7 @@ const PublicSearch = () => {
             )}
             
             <div className="flex-1 min-h-0 border rounded-md overflow-hidden">
-              {selectedFile?.content ? (
-                <iframe 
-                  src={selectedFile.content.startsWith('data:') ? selectedFile.content : `data:application/pdf;base64,${btoa(selectedFile.content || '')}`}
-                  className="w-full h-full border-0"
-                  title={`${selectedFile.name} preview`}
-                ></iframe>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-muted">
-                  <div className="text-center">
-                    <FileText size={48} className="mx-auto mb-3 text-muted-foreground" />
-                    <p className="font-medium">PDF preview not available</p>
-                    <p className="text-muted-foreground text-sm mt-1">Login for full access</p>
-                  </div>
-                </div>
-              )}
+              {selectedFile && renderFileContent(selectedFile)}
             </div>
             
             <div className="mt-4 flex items-center justify-between">
@@ -308,6 +429,28 @@ const PublicSearch = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete File</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{fileToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              // Handle file deletion here
+              console.log("Deleting file:", fileToDelete?.name);
+              setShowDeleteDialog(false);
+              setFileToDelete(null);
+            }}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <footer className="bg-white py-4 text-center text-sm text-muted-foreground border-t">
         <p>© 2025 TheSpect Research Repository. All rights reserved.</p>
