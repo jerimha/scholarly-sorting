@@ -16,13 +16,12 @@ interface FileMoverProps {
 }
 
 const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
-  const [selectedFolder, setSelectedFolder] = useState<string>("__ROOT__");
+  const [selectedFolder, setSelectedFolder] = useState<string>("");
   const [isMoving, setIsMoving] = useState(false);
   
   const folders = getRootFolders();
-  const ROOT_FOLDER_VALUE = "__ROOT__";
   const allFolderPaths = [
-    { value: ROOT_FOLDER_VALUE, label: "Root Folder" },
+    { value: "", label: "Root Folder" },
     ...folders.map(folder => ({ value: folder.name, label: folder.name })),
     ...folders.flatMap(folder => 
       folder.subFolders.map(subFolder => ({
@@ -38,8 +37,7 @@ const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
     setIsMoving(true);
     
     try {
-      // If moving to root, path is []
-      const newPath = selectedFolder === ROOT_FOLDER_VALUE ? [] : selectedFolder.split('/');
+      const newPath = selectedFolder ? selectedFolder.split('/') : [];
       const updatedFile = {
         ...file,
         path: newPath,
@@ -51,7 +49,7 @@ const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
       if (success) {
         onMoved();
         onClose();
-        setSelectedFolder(ROOT_FOLDER_VALUE);
+        setSelectedFolder("");
       }
     } catch (error) {
       console.error("Error moving file:", error);
@@ -120,4 +118,3 @@ const FileMover = ({ file, isOpen, onClose, onMoved }: FileMoverProps) => {
 };
 
 export default FileMover;
-
