@@ -9,6 +9,16 @@ import { getAllFilesFromStorage, addSampleFiles } from "@/lib/storage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const PublicSearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,6 +26,8 @@ const PublicSearch = () => {
   const [allFiles, setAllFiles] = useState<File[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [yearFilter, setYearFilter] = useState<string>("all");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<File | null>(null);
   const navigate = useNavigate();
   
   const availableYears = Array.from(
@@ -117,6 +129,90 @@ const PublicSearch = () => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
+
+  const renderFileContent = (file: File) => {
+    if (!file.content) {
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-muted">
+          <div className="text-center">
+            <FileText size={48} className="mx-auto mb-3 text-muted-foreground" />
+            <p className="font-medium">Content not available</p>
+            <p className="text-muted-foreground text-sm mt-1">Login for full access</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Handle different file types
+    if (file.type === 'txt' || file.type === 'docx') {
+      return (
+        <div className="w-full h-full p-4 bg-white overflow-auto">
+          <div className="whitespace-pre-wrap text-sm">
+            {file.content}
+          </div>
+        </div>
+      );
+    }
+
+    // Handle PDF files safely
+    if (file.type === 'pdf') {
+      try {
+        // Check if content is already a data URL
+        if (file.content.startsWith('data:')) {
+          return (
+            <iframe 
+              src={file.content}
+              className="w-full h-full border-0"
+              title={`${file.name} preview`}
+            />
+          );
+        }
+        
+        // For base64 content, create data URL safely
+        const dataUrl = `data:application/pdf;base64,${file.content}`;
+        return (
+          <iframe 
+            src={dataUrl}
+            className="w-full h-full border-0"
+            title={`${file.name} preview`}
+          />
+        );
+      } catch (error) {
+        console.error("Error rendering PDF:", error);
+        return (
+          <div className="w-full h-full flex items-center justify-center bg-muted">
+            <div className="text-center">
+              <FileText size={48} className="mx-auto mb-3 text-muted-foreground" />
+              <p className="font-medium">PDF preview unavailable</p>
+              <p className="text-muted-foreground text-sm mt-1">Login for full access</p>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    // Handle image files
+    if (file.type === 'image') {
+      return (
+        <img 
+          src={file.content} 
+          alt={file.name}
+          className="w-full h-full object-contain"
+        />
+      );
+    }
+
+    // Fallback for other file types
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-muted">
+        <div className="text-center">
+          <FileText size={48} className="mx-auto mb-3 text-muted-foreground" />
+          <p className="font-medium">Preview not available</p>
+          <p className="text-muted-foreground text-sm mt-1">Login for full access</p>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -266,7 +362,7 @@ const PublicSearch = () => {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(open) => !open && setSelectedFile(null)}>
-        <DialogContent className="max-w-3xl h-[90vh]">
+        <DialogContent className="max-w-4xl h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <div>
@@ -303,21 +399,7 @@ const PublicSearch = () => {
             )}
             
             <div className="flex-1 min-h-0 border rounded-md overflow-hidden">
-              {selectedFile?.content ? (
-                <iframe 
-                  src={selectedFile.content.startsWith('data:') ? selectedFile.content : `data:application/pdf;base64,${btoa(selectedFile.content || '')}`}
-                  className="w-full h-full border-0"
-                  title={`${selectedFile.name} preview`}
-                ></iframe>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-muted">
-                  <div className="text-center">
-                    <FileText size={48} className="mx-auto mb-3 text-muted-foreground" />
-                    <p className="font-medium">Preview not available</p>
-                    <p className="text-muted-foreground text-sm mt-1">Login for full access</p>
-                  </div>
-                </div>
-              )}
+              {selectedFile && renderFileContent(selectedFile)}
             </div>
             
             <div className="mt-4 flex items-center justify-between">
@@ -347,6 +429,28 @@ const PublicSearch = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete File</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{fileToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              // Handle file deletion here
+              console.log("Deleting file:", fileToDelete?.name);
+              setShowDeleteDialog(false);
+              setFileToDelete(null);
+            }}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <footer className="bg-white py-4 text-center text-sm text-muted-foreground border-t">
         <p>© 2025 TheSpect Research Repository. All rights reserved.</p>

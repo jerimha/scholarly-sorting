@@ -672,3 +672,45 @@ export const addSampleFiles = (): void => {
     sampleFiles.forEach(file => saveFile(file));
   }
 };
+
+/**
+ * Remove the content of all files in localStorage.
+ */
+export const removeAllFileContents = (): void => {
+  try {
+    const filesJson = localStorage.getItem("files");
+    let files: File[] = filesJson ? JSON.parse(filesJson) : [];
+    // Remove 'content' from all files
+    files = files.map((file) => ({
+      ...file,
+      content: undefined,
+    }));
+    localStorage.setItem("files", JSON.stringify(files));
+    console.log("All file contents removed.");
+  } catch (error) {
+    console.error("Error removing file contents:", error);
+  }
+};
+
+export const removeAllResearchFiles = (): void => {
+  try {
+    const filesJson = localStorage.getItem("files");
+    let files: File[] = filesJson ? JSON.parse(filesJson) : [];
+
+    // Remove files if:
+    // - Their 'path' includes "IT Research"
+    // - OR their tags include 'Research'
+    files = files.filter(file => {
+      // Check if file is in IT Research folder
+      const inITResearch = file.path && file.path.includes("IT Research");
+      // Check if file is tagged with "Research"
+      const hasResearchTag = file.tags && file.tags.some(tag => tag.name === "Research");
+      return !(inITResearch || hasResearchTag);
+    });
+
+    localStorage.setItem("files", JSON.stringify(files));
+    console.log("All research files removed.");
+  } catch (error) {
+    console.error("Error removing research files:", error);
+  }
+};
