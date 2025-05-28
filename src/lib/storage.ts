@@ -672,3 +672,22 @@ export const addSampleFiles = (): void => {
     sampleFiles.forEach(file => saveFile(file));
   }
 };
+
+/**
+ * Remove the content of all files in localStorage.
+ */
+export const removeAllFileContents = (): void => {
+  try {
+    const filesJson = localStorage.getItem("files");
+    let files: File[] = filesJson ? JSON.parse(filesJson) : [];
+    // Remove 'content' from all files
+    files = files.map((file) => ({
+      ...file,
+      content: undefined,
+    }));
+    localStorage.setItem("files", JSON.stringify(files));
+    console.log("All file contents removed.");
+  } catch (error) {
+    console.error("Error removing file contents:", error);
+  }
+};
