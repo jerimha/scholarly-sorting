@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { Search, FileText, Shield, Calendar, Lock, Filter, Info } from "lucide-react";
+import { Search, FileText, Shield, Calendar, Lock, Filter, Info, Clock } from "lucide-react";
 import { formatFileSize } from "@/lib/data";
 import { File } from "@/types";
 import { getAllFilesFromStorage, addSampleFiles } from "@/lib/storage";
@@ -26,6 +26,7 @@ const PublicSearch = () => {
   const [allFiles, setAllFiles] = useState<File[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [yearFilter, setYearFilter] = useState<string>("all");
+  const [dayFilter, setDayFilter] = useState<string>("all");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<File | null>(null);
   const navigate = useNavigate();
@@ -34,6 +35,21 @@ const PublicSearch = () => {
     { length: 2025 - 2000 + 1 }, 
     (_, i) => (2025 - i).toString()
   );
+
+  // Generate days for the current year
+  const availableDays = Array.from({ length: 365 }, (_, i) => {
+    const date = new Date(2025, 0, i + 1);
+    const dayOfYear = i + 1;
+    const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return { value: dayOfYear.toString(), label: `${monthDay} (Day ${dayOfYear})` };
+  });
+
+  // Helper function to get day of year from date
+  const getDayOfYear = (date: Date): number => {
+    const start = new Date(date.getFullYear(), 0, 0);
+    const diff = date.getTime() - start.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  };
 
   // Load all files from localStorage on component mount
   useEffect(() => {
@@ -68,7 +84,7 @@ const PublicSearch = () => {
   }, []);
 
   const handleSearch = () => {
-    console.log("Searching with query:", searchQuery, "and year filter:", yearFilter);
+    console.log("Searching with query:", searchQuery, "year filter:", yearFilter, "day filter:", dayFilter);
     let filteredFiles = [...allFiles];
     
     // Apply search query filter
@@ -82,24 +98,37 @@ const PublicSearch = () => {
         const matchesNotes = file.notes && file.notes.toLowerCase().includes(query);
         const matchesContent = file.content && file.content.toLowerCase().includes(query);
         
-        return matchesName || matchesTags || matchesAbstract || matchesAuthors || matchesNotes || matchesContent;
+        // Search by upload date (day of year)
+        const uploadDay = getDayOfYear(file.createdAt);
+        const matchesUploadDay = query.includes('day') && query.includes(uploadDay.toString());
+        
+        return matchesName || matchesTags || matchesAbstract || matchesAuthors || matchesNotes || matchesContent || matchesUploadDay;
       });
     }
     
-    // Apply year filter
+    // Apply year filter (publication year)
     if (yearFilter !== "all") {
       const year = parseInt(yearFilter);
       filteredFiles = filteredFiles.filter(file => file.publicationYear === year);
+    }
+    
+    // Apply day filter (upload day)
+    if (dayFilter !== "all") {
+      const targetDay = parseInt(dayFilter);
+      filteredFiles = filteredFiles.filter(file => {
+        const uploadDay = getDayOfYear(file.createdAt);
+        return uploadDay === targetDay;
+      });
     }
     
     console.log("Search results:", filteredFiles);
     setResults(filteredFiles);
   };
   
-  // Filter files whenever year filter changes
+  // Filter files whenever filters change
   useEffect(() => {
     handleSearch();
-  }, [yearFilter, allFiles]);
+  }, [yearFilter, dayFilter, allFiles]);
 
   // Auto-search when query changes
   useEffect(() => {
@@ -247,7 +276,7 @@ const PublicSearch = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Search by title, author, keywords, content, or notes..."
+                placeholder="Search by title, author, keywords, content, notes, or upload day..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSearch()}
@@ -266,6 +295,20 @@ const PublicSearch = () => {
                   <SelectItem value="all">All Years</SelectItem>
                   {availableYears.map(year => (
                     <SelectItem key={year} value={year}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={dayFilter} onValueChange={setDayFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Filter by upload day" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px] overflow-y-auto">
+                  <SelectItem value="all">All Upload Days</SelectItem>
+                  {availableDays.map(day => (
+                    <SelectItem key={day.value} value={day.value}>{day.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -317,6 +360,10 @@ const PublicSearch = () => {
                               {file.publicationYear}
                             </Badge>
                           )}
+                          <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1">
+                            <Clock size={10} />
+                            Day {getDayOfYear(file.createdAt)}
+                          </Badge>
                           {file.tags.map(tag => (
                             <Badge key={tag.id} variant="outline" className={`text-xs ${
                               tag.color === "blue" ? "bg-blue-50 text-blue-700" :
@@ -336,6 +383,9 @@ const PublicSearch = () => {
                       <p className="text-sm text-muted-foreground">
                         {formatFileSize(file.size)}
                       </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Uploaded: {file.createdAt.toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -343,17 +393,17 @@ const PublicSearch = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              {(searchQuery || yearFilter !== "all") ? (
+              {(searchQuery || yearFilter !== "all" || dayFilter !== "all") ? (
                 <div>
                   <Info className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
                   <p className="text-lg font-medium">No documents found</p>
-                  <p className="text-muted-foreground mt-1">Try adjusting your search criteria or year filter</p>
+                  <p className="text-muted-foreground mt-1">Try adjusting your search criteria, year filter, or upload day filter</p>
                 </div>
               ) : (
                 <div>
                   <Filter className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
                   <p className="text-lg font-medium">Browse Documents</p>
-                  <p className="text-muted-foreground mt-1">Use the search or filter by year to find documents</p>
+                  <p className="text-muted-foreground mt-1">Use the search or filter by year/upload day to find documents</p>
                 </div>
               )}
             </div>
@@ -371,6 +421,12 @@ const PublicSearch = () => {
                   <Badge className="ml-2 bg-blue-100 text-blue-800 border-blue-200">
                     <Calendar size={12} className="mr-1" />
                     {selectedFile.publicationYear}
+                  </Badge>
+                )}
+                {selectedFile && (
+                  <Badge className="ml-2 bg-green-100 text-green-800 border-green-200">
+                    <Clock size={12} className="mr-1" />
+                    Day {getDayOfYear(selectedFile.createdAt)}
                   </Badge>
                 )}
               </div>
